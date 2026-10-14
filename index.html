@@ -945,10 +945,17 @@ function renderCurrencyControls() {
   document.querySelectorAll('#curToggle button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.code === state.cur)));
   document.querySelectorAll('.money-input .sym').forEach((el) => { el.textContent = cur().sym; });
   $('inCode').value = state.cur;
-  const sel = $('inNote'); const notes = cur().notes.slice().sort((a, b) => a - b);
+  const sel = $('inNote'); const notes = tenderOptions(state.bill);
   if (!notes.includes(state.note)) notes.push(state.note);
-  sel.innerHTML = notes.map((n) => `<option value="${n}">${fmtShort(n)}${cur().notes.includes(n) ? ' ' + cur().noteWord : ' (custom)'}</option>`).join('');
+  const word = (n) => cur().notes.includes(n) ? ' ' + cur().noteWord : n > cur().notes[0] && n % 1000 === 0 ? ' cash' : ' (custom)';
+  sel.innerHTML = notes.map((n) => `<option value="${n}">${fmtShort(n)}${word(n)}</option>`).join('');
   sel.value = String(state.note);
+}
+/** Notes, plus round cash amounts ($120 = $100 + $20, $150, $200) when the bill is more than the biggest note. */
+function tenderOptions(bill) {
+  const out = cur().notes.slice().sort((a, b) => a - b), top = out[out.length - 1];
+  if (bill > top) for (const r of [1000, 5000, 10000]) { const t = Math.ceil(bill / r) * r; if (!out.includes(t) && t <= MAX_CENTS) out.push(t); }
+  return out;
 }
 function renderScenario() {
   const { tender, change, pos } = derived();
@@ -1493,15 +1500,22 @@ function wire() {
   $('muteBtn').addEventListener('click', () => { state.muted = !state.muted; store.set('muted', state.muted); syncMute(); Sfx.tap(); });
   syncMute();
   // scenario inputs
-  const fromInputs = () => setScenario(parseCents($('inBill').value), parseInt($('inNote').value, 10), parseCents($('inExtra').value || '0'), true);
+  // typed = the Bill or Extra box changed: if the tender no longer covers the bill, step up to the smallest one that does
+  const fromInputs = (typed) => {
+    const b = parseCents($('inBill').value), e = parseCents($('inExtra').value || '0');
+    let n = parseInt($('inNote').value, 10);
+    const up = typed && b !== null && e !== null && n + e < b ? tenderOptions(b).find((v) => v + e >= b) : 0;
+    if (up) n = up;
+    if (setScenario(b, n, e, true) && up) { $('scenarioMsg').textContent = `Tender set to ${fmtShort(up)} to cover the bill`; }
+  };
   let inputTimer = 0;
   for (const id of ['inBill', 'inExtra']) {
-    $(id).addEventListener('input', () => { clearTimeout(inputTimer); inputTimer = setTimeout(fromInputs, 250); });
-    $(id).addEventListener('change', () => { clearTimeout(inputTimer); fromInputs(); });
+    $(id).addEventListener('input', () => { clearTimeout(inputTimer); inputTimer = setTimeout(() => fromInputs(true), 250); });
+    $(id).addEventListener('change', () => { clearTimeout(inputTimer); fromInputs(true); });
     $(id).addEventListener('blur', () => { if (!$(id).getAttribute('aria-invalid') || $(id).getAttribute('aria-invalid') === 'false') renderScenario(); });
     $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $(id).blur(); } });
   }
-  $('inNote').addEventListener('change', fromInputs);
+  $('inNote').addEventListener('change', () => fromInputs(false));
   $('shareBtn').addEventListener('click', async () => { const ok = await copyText(shareURL()); toast(ok ? '🔗 Share link copied' : shareURL()); Sfx.tap(); });
   $('randomBtn').addEventListener('click', () => {
     let c; do { c = genCustomer(); } while (!(c.bill % 100));
