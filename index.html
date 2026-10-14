@@ -93,8 +93,9 @@ select.pick{appearance:none;-webkit-appearance:none;background:var(--panel2);bor
 .tabs{position:sticky;top:calc(56px + env(safe-area-inset-top));z-index:15;background:var(--bg);padding:8px 0}
 .tabs .seg{display:flex;width:100%}
 .tabs .seg button{flex:1;padding:10px 6px;font-size:14px}
-.tabs .seg button{font-size:13px}
-@media (min-width:560px){.tabs .seg button{font-size:15px}}
+.tabs .seg button{font-size:13px;padding:10px 4px}
+.tabs .lg{display:none}
+@media (min-width:640px){.tabs .seg button{font-size:15px}.tabs .lg{display:inline}.tabs .sm{display:none}}
 [role="tabpanel"][hidden]{display:none}
 
 /* SVG visuals */
@@ -125,9 +126,9 @@ input[type=range]{width:100%;accent-color:var(--emerald);height:36px}
 /* Money chips */
 .money{display:inline-flex;align-items:center;justify-content:center;font-weight:900;color:#111827;border:2px solid rgba(0,0,0,.28);user-select:none;-webkit-user-select:none;white-space:nowrap;font-variant-numeric:tabular-nums}
 .money.note{min-width:64px;height:36px;padding:0 8px;border-radius:6px;background:linear-gradient(135deg,rgba(255,255,255,.35),transparent 40%),var(--c);font-size:15px;box-shadow:inset 0 0 0 3px rgba(255,255,255,.25)}
-.money.coin{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.65),transparent 45%),var(--c);font-size:13px;box-shadow:inset 0 0 0 3px rgba(0,0,0,.12)}
+.money.coin{width:var(--d,46px);height:var(--d,46px);border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.65),transparent 45%),var(--c);font-size:clamp(10px,calc(var(--d,46px) * .28),15px);box-shadow:inset 0 0 0 3px rgba(0,0,0,.12)}
+.money.coin.bi{background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.55),transparent 40%),radial-gradient(circle,var(--in) 0 54%,rgba(0,0,0,.3) 55% 57%,var(--c) 58%)}
 .money.sm.note{min-width:48px;height:28px;font-size:13px}
-.money.sm.coin{width:36px;height:36px;font-size:11px}
 .chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:46px}
 .mult{font-size:12px;font-weight:900;color:var(--muted);margin-left:-3px}
 
@@ -190,6 +191,22 @@ input[type=range]{width:100%;accent-color:var(--emerald);height:36px}
 @keyframes fg{30%{box-shadow:0 0 0 4px var(--ok)}}
 @keyframes fb{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 
+/* Real cash guide */
+.guide-meta{font-size:14px;color:var(--muted);margin:0 0 6px}
+.cash-grid{display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:640px){.cash-grid{grid-template-columns:1fr 1fr}}
+.cash-item{display:flex;gap:12px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px}
+.cash-item.off{opacity:.72;border-style:dashed}
+.cash-item .vis{flex:0 0 auto;display:flex;align-items:center;justify-content:center}
+.cash-item .vis.nv{width:196px;max-width:48%}
+.cash-item .vis.cv{width:64px}
+.cash-item b{display:block;font-size:15px}
+.cash-item small{display:block;color:var(--muted);font-size:13px;line-height:1.35}
+.cash-item .tag{display:inline-block;margin-top:4px;font-size:11px;font-weight:900;border-radius:999px;padding:2px 8px;background:var(--line);color:var(--text)}
+.money.note.big{height:auto;aspect-ratio:2.1/1;font-size:20px;border-radius:8px;max-width:100%}
+.note-wrap{width:100%;display:flex}
+.src{font-size:13px;color:var(--muted)}
+.src a{color:var(--cyan)}
 footer{color:var(--muted);font-size:13px;text-align:center;padding:24px 16px 40px}
 footer a{color:inherit}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,40px);opacity:0;background:var(--text);color:var(--bg);font-weight:800;padding:10px 16px;border-radius:12px;transition:.25s;pointer-events:none;z-index:50;max-width:calc(100% - 32px);text-align:center}
@@ -251,9 +268,10 @@ footer a{color:inherit}
 
   <nav class="tabs" aria-label="Views">
     <div class="seg" role="tablist">
-      <button type="button" role="tab" id="tab-line" aria-controls="view-line" aria-selected="true" data-view="line">① <span>Number Line</span></button>
-      <button type="button" role="tab" id="tab-fusion" aria-controls="view-fusion" aria-selected="false" data-view="fusion" tabindex="-1">② <span>Coin Fusion</span></button>
-      <button type="button" role="tab" id="tab-drill" aria-controls="view-drill" aria-selected="false" data-view="drill" tabindex="-1">③ <span>Speed Drill</span></button>
+      <button type="button" role="tab" id="tab-line" aria-controls="view-line" aria-selected="true" data-view="line">① <span class="lg">Number Line</span><span class="sm">Line</span></button>
+      <button type="button" role="tab" id="tab-fusion" aria-controls="view-fusion" aria-selected="false" data-view="fusion" tabindex="-1">② <span class="lg">Coin Fusion</span><span class="sm">Fusion</span></button>
+      <button type="button" role="tab" id="tab-drill" aria-controls="view-drill" aria-selected="false" data-view="drill" tabindex="-1">③ <span class="lg">Speed Drill</span><span class="sm">Drill</span></button>
+      <button type="button" role="tab" id="tab-cash" aria-controls="view-cash" aria-selected="false" data-view="cash" tabindex="-1">④ <span class="lg">Real Cash</span><span class="sm">Cash</span></button>
     </div>
   </nav>
 
@@ -384,6 +402,23 @@ footer a{color:inherit}
       <p class="msg" id="bestLine"></p>
     </div>
   </section>
+
+  <!-- VIEW 4 -->
+  <section id="view-cash" role="tabpanel" aria-labelledby="tab-cash" hidden>
+    <div class="card">
+      <h2 id="cashTitle">Real notes &amp; coins</h2>
+      <p class="guide-meta" id="cashIssuer"></p>
+      <p class="lede" id="cashSeries"></p>
+      <p class="lede">Faded cards are legal tender but are not used to give change in the drill.</p>
+      <h3>Notes</h3>
+      <div class="cash-grid" id="cashNotes"></div>
+      <h3>Coins <span style="text-transform:none;letter-spacing:0;font-weight:600">· drawn to relative size</span></h3>
+      <div class="cash-grid" id="cashCoins"></div>
+      <h3>Rounding</h3>
+      <p class="lede" id="cashRounding"></p>
+      <p class="src" id="cashLinks"></p>
+    </div>
+  </section>
 </main>
 
 <footer>
@@ -402,14 +437,129 @@ footer a{color:inherit}
  * Floats are never used for money — only for pixel positions.
  * ===================================================================== */
 const MAX_CENTS = 10000000; // $100,000.00
-const DOLLAR_SET = { notes: [5000, 2000, 1000, 500], coins: [200, 100, 50, 20, 10, 5], step: 5 };
-const CURRENCIES = {
-  AUD: { code: 'AUD', symbol: '$', minor: 'c', name: 'Australian dollar', ...DOLLAR_SET },
-  USD: { code: 'USD', symbol: '$', minor: 'c', name: 'US dollar', ...DOLLAR_SET },
-  CAD: { code: 'CAD', symbol: '$', minor: 'c', name: 'Canadian dollar', ...DOLLAR_SET },
-  GBP: { code: 'GBP', symbol: '£', minor: 'p', name: 'Pound sterling', notes: [5000, 2000, 1000, 500], coins: [200, 100, 50, 20, 10, 5, 2, 1], step: 1 },
-  EUR: { code: 'EUR', symbol: '€', minor: 'c', name: 'Euro', notes: [5000, 2000, 1000, 500], coins: [200, 100, 50, 20, 10, 5, 2, 1], step: 1 },
+/* Real circulating cash (checked October 2026).
+ * v = value in minor units · mm = note length / coin diameter · drawer = used when giving change.
+ * Coin metals: g = gold-coloured, s = silver-coloured, cu = copper, bi = bimetallic (outer, inner). */
+const M = { g: '#d9a92b', s: '#cfd5dc', cu: '#c46a32', ng: '#d8b44a' };
+const note = (v, mm, color, front, back, extra = {}) => ({ v, kind: 'note', mm, color, front, back, drawer: true, ...extra });
+const coin = (v, mm, color, design, extra = {}) => ({ v, kind: 'coin', mm, color, design, drawer: true, ...extra });
+const CASH = {
+  AUD: {
+    issuer: 'Reserve Bank of Australia · Royal Australian Mint',
+    series: 'Next Generation polymer banknotes (2016–2020). Coins carry King Charles III from 2023; older Queen Elizabeth II coins remain legal tender.',
+    rounding: 'There is no 1c or 2c coin, so cash totals are rounded to the nearest 5c (1–2c down, 3–4c up). Card payments are not rounded.',
+    links: [['RBA banknotes', 'https://banknotes.rba.gov.au/'], ['Royal Australian Mint', 'https://www.ramint.gov.au/']],
+    cash: [
+      note(10000, 158, '#4fbf7a', 'Dame Nellie Melba', 'Sir John Monash'),
+      note(5000, 151, '#f2c94c', 'David Unaipon', 'Edith Cowan'),
+      note(2000, 144, '#e8664f', 'Mary Reibey', 'Rev. John Flynn'),
+      note(1000, 137, '#5aa0e6', 'A.B. “Banjo” Paterson', 'Dame Mary Gilmore'),
+      note(500, 130, '#c9a0dc', 'Queen Elizabeth II', 'Parliament House', { status: 'Redesign announced to honour First Nations culture; current note stays legal tender' }),
+      coin(200, 20.5, M.g, 'Aboriginal elder'),
+      coin(100, 25.0, M.g, 'Five kangaroos'),
+      coin(50, 31.65, M.s, 'Coat of arms', { sides: 12 }),
+      coin(20, 28.52, M.s, 'Platypus'),
+      coin(10, 23.6, M.s, 'Lyrebird'),
+      coin(5, 19.41, M.s, 'Echidna'),
+    ],
+  },
+  USD: {
+    issuer: 'Federal Reserve · U.S. Mint',
+    series: 'Federal Reserve notes. The $100 has had a blue 3-D security ribbon since 2013.',
+    rounding: 'The U.S. Mint struck its last circulating penny on 12 November 2025. Pennies are still legal tender, but some stores now round cash totals to the nearest 5c. SnapChange still gives change to the cent.',
+    links: [['U.S. Currency Education', 'https://www.uscurrency.gov/'], ['U.S. Mint', 'https://www.usmint.gov/']],
+    cash: [
+      note(10000, 156, '#a8cfd6', 'Benjamin Franklin', 'Independence Hall'),
+      note(5000, 156, '#d9b3c4', 'Ulysses S. Grant', 'U.S. Capitol'),
+      note(2000, 156, '#b9d4a8', 'Andrew Jackson', 'White House'),
+      note(1000, 156, '#e3c08f', 'Alexander Hamilton', 'U.S. Treasury'),
+      note(500, 156, '#c3b6d6', 'Abraham Lincoln', 'Lincoln Memorial'),
+      note(200, 156, '#a8c49a', 'Thomas Jefferson', 'Declaration of Independence', { drawer: false, status: 'Legal tender but rarely seen' }),
+      note(100, 156, '#a8c49a', 'George Washington', 'Great Seal'),
+      coin(100, 26.49, M.g, 'Golden dollar', { drawer: false, status: 'Rarely circulates' }),
+      coin(50, 30.61, M.s, 'John F. Kennedy (half dollar)', { drawer: false, status: 'Rarely circulates' }),
+      coin(25, 24.26, M.s, 'George Washington (quarter)'),
+      coin(10, 17.91, M.s, 'Franklin D. Roosevelt (dime)'),
+      coin(5, 21.21, M.s, 'Thomas Jefferson (nickel)'),
+      coin(1, 19.05, M.cu, 'Abraham Lincoln (penny)', { status: 'Production ended 2025; still legal tender' }),
+    ],
+  },
+  CAD: {
+    issuer: 'Bank of Canada · Royal Canadian Mint',
+    series: 'Polymer banknotes: the Frontier series (2011–2013) plus the vertical $10 (2018).',
+    rounding: 'The penny was withdrawn in 2013, so cash totals are rounded to the nearest 5c. Card payments are not rounded.',
+    links: [['Bank of Canada banknotes', 'https://www.bankofcanada.ca/banknotes/'], ['Royal Canadian Mint', 'https://www.mint.ca/']],
+    cash: [
+      note(10000, 152.4, '#b8865b', 'Sir Robert Borden', 'Medical innovation'),
+      note(5000, 152.4, '#e05a5a', 'William Lyon Mackenzie King', 'CCGS Amundsen icebreaker'),
+      note(2000, 152.4, '#5fb36b', 'Queen Elizabeth II', 'Canadian National Vimy Memorial', { status: 'New $20 featuring King Charles III announced' }),
+      note(1000, 152.4, '#9b6fc4', 'Viola Desmond (vertical)', 'Canadian Museum for Human Rights'),
+      note(500, 152.4, '#5b8fd6', 'Sir Wilfrid Laurier', 'Canadarm2 & Dextre'),
+      coin(200, 28.0, M.s, 'Polar bear (“toonie”)', { inner: M.g }),
+      coin(100, 26.5, M.g, 'Common loon (“loonie”)', { sides: 11 }),
+      coin(50, 27.13, M.s, 'Coat of arms', { drawer: false, status: 'Rarely circulates' }),
+      coin(25, 23.88, M.s, 'Caribou'),
+      coin(10, 18.03, M.s, 'Bluenose schooner'),
+      coin(5, 21.2, M.s, 'Beaver'),
+    ],
+  },
+  GBP: {
+    issuer: 'Bank of England · The Royal Mint',
+    series: 'Polymer banknotes (2016–2021). Notes with King Charles III have been issued since June 2024 alongside the Queen Elizabeth II notes. Scottish and Northern Irish notes are not shown here.',
+    rounding: 'Change is given to the penny.',
+    links: [['Bank of England banknotes', 'https://www.bankofengland.co.uk/banknotes'], ['The Royal Mint', 'https://www.royalmint.com/']],
+    cash: [
+      note(5000, 146, '#e05a5a', 'Monarch', 'Alan Turing'),
+      note(2000, 139, '#9b6fc4', 'Monarch', 'J.M.W. Turner'),
+      note(1000, 132, '#f0904a', 'Monarch', 'Jane Austen'),
+      note(500, 125, '#4fb3a5', 'Monarch', 'Sir Winston Churchill'),
+      coin(200, 28.4, M.s, 'Bimetallic £2', { inner: M.g }),
+      coin(100, 23.43, M.g, 'Bimetallic £1 (2017)', { sides: 12, inner: M.s }),
+      coin(50, 27.3, M.s, 'Cupronickel 50p', { sides: 7 }),
+      coin(20, 21.4, M.s, 'Cupronickel 20p', { sides: 7 }),
+      coin(10, 24.5, M.s, '10p'),
+      coin(5, 18.0, M.s, '5p'),
+      coin(2, 25.9, M.cu, '2p'),
+      coin(1, 20.3, M.cu, '1p'),
+    ],
+  },
+  EUR: {
+    issuer: 'European Central Bank · national mints',
+    series: 'Europa series banknotes (2013–2019). Each note shows an architectural style.',
+    rounding: 'Change is given to the cent. Some countries, including Ireland, the Netherlands, Belgium, Finland, Italy and Slovakia, round cash totals to 5c.',
+    links: [['ECB euro banknotes', 'https://www.ecb.europa.eu/euro/banknotes/'], ['ECB euro coins', 'https://www.ecb.europa.eu/euro/coins/']],
+    cash: [
+      note(50000, 160, '#a67cc4', 'Modern 20th-century windows & gateway, Europa portrait', 'Modern 20th-century bridge, map of Europe', { drawer: false, status: 'No longer issued since 2019; still legal tender' }),
+      note(20000, 153, '#d4b25a', '19th-century iron & glass windows & gateway, Europa portrait', '19th-century iron & glass bridge, map of Europe'),
+      note(10000, 147, '#5fb36b', 'Baroque & rococo windows & gateway, Europa portrait', 'Baroque & rococo bridge, map of Europe'),
+      note(5000, 140, '#f0a04a', 'Renaissance windows & gateway, Europa portrait', 'Renaissance bridge, map of Europe'),
+      note(2000, 133, '#5b8fd6', 'Gothic windows & gateway, Europa portrait', 'Gothic bridge, map of Europe'),
+      note(1000, 127, '#e06a6a', 'Romanesque windows & gateway, Europa portrait', 'Romanesque bridge, map of Europe'),
+      note(500, 120, '#a9a9a9', 'Classical windows & gateway, Europa portrait', 'Classical bridge, map of Europe'),
+      coin(200, 25.75, M.ng, 'Bimetallic €2', { inner: M.s }),
+      coin(100, 23.25, M.s, 'Bimetallic €1', { inner: M.ng }),
+      coin(50, 24.25, M.ng, 'Nordic gold'),
+      coin(20, 22.25, M.ng, 'Nordic gold, notched edge'),
+      coin(10, 19.75, M.ng, 'Nordic gold'),
+      coin(5, 21.25, M.cu, 'Copper-plated steel'),
+      coin(2, 18.75, M.cu, 'Copper-plated steel'),
+      coin(1, 16.25, M.cu, 'Copper-plated steel'),
+    ],
+  },
 };
+const META = {
+  AUD: { symbol: '$', minor: 'c', name: 'Australian dollar', major: 'dollars', step: 5 },
+  USD: { symbol: '$', minor: 'c', name: 'US dollar', major: 'dollars', step: 1 },
+  CAD: { symbol: '$', minor: 'c', name: 'Canadian dollar', major: 'dollars', step: 5 },
+  GBP: { symbol: '£', minor: 'p', name: 'Pound sterling', major: 'pounds', step: 1 },
+  EUR: { symbol: '€', minor: 'c', name: 'Euro', major: 'euros', step: 1 },
+};
+const CURRENCIES = {};
+for (const code of Object.keys(META)) {
+  const info = CASH[code];
+  const inDrawer = (kind) => info.cash.filter((x) => x.kind === kind && x.drawer).map((x) => x.v).sort((a, b) => b - a);
+  CURRENCIES[code] = { code, ...META[code], ...info, notes: inDrawer('note'), coins: inDrawer('coin') };
+}
 const SYMBOL_DEFAULT = { '$': 'AUD', '£': 'GBP', '€': 'EUR' };
 
 const Cents = {
@@ -469,17 +619,29 @@ const Cents = {
 };
 
 const isNote = (d, cur) => cur.notes.includes(d);
-const NOTE_COLORS = { 500: '#e879f9', 1000: '#60a5fa', 2000: '#f87171', 5000: '#facc15' };
-function denomColor(d, cur) {
-  if (isNote(d, cur)) return NOTE_COLORS[d] || '#a3e635';
-  if (d >= 100) return '#eab308';
-  if (d <= 2) return '#c2410c';
-  return '#cbd5e1';
+const cashItem = (d, kind, cur) => cur.cash.find((x) => x.v === d && x.kind === kind);
+function polygon(n) {
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const a = (Math.PI * 2 * i) / n - Math.PI / 2;
+    pts.push(`${(50 + 50 * Math.cos(a)).toFixed(2)}% ${(50 + 50 * Math.sin(a)).toFixed(2)}%`);
+  }
+  return `polygon(${pts.join(',')})`;
 }
-function moneyChip(d, cur, small) {
+/** A note or coin styled after the real thing: colour, metal, shape and relative size. */
+function moneyChip(d, cur, small, kind) {
+  const k = kind || (isNote(d, cur) ? 'note' : 'coin');
+  const item = cashItem(d, k, cur) || { color: '#a3e635', mm: k === 'coin' ? 24 : 140 };
   const el = document.createElement('span');
-  el.className = `money ${isNote(d, cur) ? 'note' : 'coin'}${small ? ' sm' : ''}`;
-  el.style.setProperty('--c', denomColor(d, cur));
+  el.className = `money ${k}${small ? ' sm' : ''}`;
+  el.style.setProperty('--c', item.color);
+  if (k === 'coin') {
+    const px = Math.round(Math.max(small ? 28 : 32, item.mm * (small ? 1.4 : 1.8)));
+    el.style.setProperty('--d', `${px}px`);
+    if (item.inner) el.style.setProperty('--in', item.inner);
+    if (item.inner) el.classList.add('bi');
+    if (item.sides) el.style.clipPath = polygon(item.sides);
+  }
   el.textContent = Cents.short(d, cur);
   return el;
 }
@@ -551,7 +713,7 @@ const Sfx = {
  * 3. APP STATE + URL DEEP-LINKING
  * ===================================================================== */
 const $ = (s) => document.querySelector(s);
-const VIEWS = ['line', 'fusion', 'drill'];
+const VIEWS = ['line', 'fusion', 'drill', 'cash'];
 const CLASSIC = { bill: 1170, note: 2000, extra: 170 };
 const state = { cur: 'AUD', ...CLASSIC, shift: 0, view: 'line' };
 const cur = () => CURRENCIES[state.cur];
@@ -690,11 +852,13 @@ function setCurrency(code) {
   Drill.buildKeypad();
   commitScenario(`Switched to ${c.name} (${c.code}).`);
   Drill.renderBest();
+  renderCashGuide();
 }
 function genCustomer(c) {
   const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
   const units = (lo, hi) => randInt(Math.ceil(lo / c.step), Math.floor(hi / c.step)) * c.step;
-  let bill = units(105, 4795);
+  const top = Math.min(10000, c.notes[0]);
+  let bill = units(105, top - 205);
   if (bill % 100 === 0) bill += c.step * randInt(1, 3);
   const bigger = c.notes.filter((n) => n > bill).sort((a, b) => a - b);
   const note = bigger.length > 1 && Math.random() < 0.25 ? bigger[1] : bigger[0];
@@ -946,7 +1110,7 @@ const Fusion = {
       });
     }
     const dIns = [[posD, 'd'], [exD, 'd'], [carry, 'd']].filter(([v]) => v);
-    if (dIns.length) this.steps.push({ label: 'Fuse the dollars', ins: dIns, out: [[dSum, 'n']] });
+    if (dIns.length) this.steps.push({ label: `Fuse the ${c.major}`, ins: dIns, out: [[dSum, 'n']] });
     this.steps.push({ label: 'Hand over (fewest pieces)', handover: d.change });
 
     for (const st of this.steps) {
@@ -1207,6 +1371,57 @@ const Drill = {
 };
 
 /* =====================================================================
+ * 7b. VIEW 4 — REAL CASH GUIDE
+ * ===================================================================== */
+function renderCashGuide() {
+  const c = cur();
+  $('#cashTitle').textContent = `${c.name} (${c.code}): real notes & coins`;
+  $('#cashIssuer').textContent = c.issuer;
+  $('#cashSeries').textContent = c.series;
+  $('#cashRounding').textContent = c.rounding;
+  const card = (x) => {
+    const el = document.createElement('div');
+    el.className = `cash-item${x.drawer ? '' : ' off'}`;
+    const vis = document.createElement('div');
+    vis.className = `vis ${x.kind === 'note' ? 'nv' : 'cv'}`;
+    const chip = moneyChip(x.v, c, false, x.kind);
+    if (x.kind === 'note') {
+      chip.classList.add('big');
+      chip.style.width = `${Math.round((x.mm / 160) * 100)}%`; // relative note length
+      const wrap = document.createElement('div'); wrap.className = 'note-wrap'; wrap.appendChild(chip);
+      vis.appendChild(wrap);
+    } else vis.appendChild(chip);
+    const txt = document.createElement('div');
+    const b = document.createElement('b');
+    b.textContent = `${Cents.short(x.v, c)} ${x.kind}`;
+    const s1 = document.createElement('small');
+    s1.textContent = x.kind === 'note'
+      ? `Front: ${x.front} · Back: ${x.back}`
+      : `${x.design}${x.sides ? ` · ${x.sides}-sided` : ''}`;
+    const s2 = document.createElement('small');
+    s2.textContent = x.kind === 'note' ? `${x.mm} mm long` : `${x.mm} mm across`;
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.textContent = 'Not used for change in the drill';
+    txt.append(b, s1, s2);
+    if (x.status) { const s3 = document.createElement('small'); s3.textContent = x.status; txt.appendChild(s3); }
+    if (!x.drawer) txt.appendChild(tag);
+    el.append(vis, txt);
+    return el;
+  };
+  for (const [id, kind] of [['#cashNotes', 'note'], ['#cashCoins', 'coin']]) {
+    const box = $(id); box.textContent = '';
+    c.cash.filter((x) => x.kind === kind).forEach((x) => box.appendChild(card(x)));
+  }
+  const links = $('#cashLinks'); links.textContent = 'Official sources: ';
+  c.links.forEach(([label, href], i) => {
+    if (i) links.append(' · ');
+    const a = document.createElement('a'); a.href = href; a.textContent = label; a.target = '_blank'; a.rel = 'noopener';
+    links.appendChild(a);
+  });
+}
+
+/* =====================================================================
  * 8. TABS + WIRING
  * ===================================================================== */
 function showView(v, focus) {
@@ -1222,6 +1437,7 @@ function showView(v, focus) {
   }
   if (v !== 'drill') Drill.abort();
   if (v === 'line') NL.build(); // measure now that the panel is visible
+  if (v === 'cash') renderCashGuide();
   writeURL();
 }
 

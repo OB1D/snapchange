@@ -12,7 +12,7 @@ Build a zero-dependency, mobile-first Progressive Web App (PWA) designed to scal
 
 ## Core Engineering Rules
 - **Strict Integer-Cents Engine:** Store and calculate all currency amounts in integer cents (`$21.70` = `2170`, `$11.70` = `1170`) to prevent IEEE 754 floating-point drift.
-- **Multi-Currency Support:** Instant toggle between `$` (AUD/USD/CAD: $50, $20, $10, $5 notes; $2, $1, 50c, 20c, 10c, 5c coins), `£` (GBP), and `€` (EUR).
+- **Multi-Currency Support:** Instant toggle between `$` (AUD/USD/CAD), `£` (GBP), and `€` (EUR), each using its **real circulating notes and coins** (e.g. AUD $100/$50/$20/$10/$5 notes; $2, $1, 50c, 20c, 10c, 5c coins). Show them in a "Real Cash" guide view.
 - **URL Deep-Linking:** Support query parameters (`?bill=11.70&note=20&extra=1.70&currency=AUD`) for instant sharing.
 
 ## 3 Synchronized Interactive Views

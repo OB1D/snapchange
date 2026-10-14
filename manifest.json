@@ -21,6 +21,7 @@
   "shortcuts": [
     { "name": "Number Line", "short_name": "Number Line", "url": "./index.html?view=line" },
     { "name": "Coin Fusion", "short_name": "Fusion", "url": "./index.html?view=fusion" },
-    { "name": "Speed Drill", "short_name": "Drill", "url": "./index.html?view=drill" }
+    { "name": "Speed Drill", "short_name": "Drill", "url": "./index.html?view=drill" },
+    { "name": "Real Cash Guide", "short_name": "Cash", "url": "./index.html?view=cash" }
   ]
 }

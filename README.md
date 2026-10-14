@@ -12,6 +12,7 @@ SnapChange is a mobile-first Progressive Web App that teaches cashiers, students
 | **① Constant-difference number line** | The bill and tender markers are joined by a rigid emerald **CHANGE GAP** beam. You can drag the *Slide to Friendly Ten* slider, or press **Auto-Slide (−$1.70)**, to glide both markers onto $10.00 and $20.00. The gap stays the same throughout. |
 | **Parallel bar-chop** | Two stacked bars (tender above bill) are coloured by **base note** (emerald), **odd dollars** (amber) and **cents** (cyan). **⚡ Zap Overhang** slices the matching $1.00 + 70c off both bars at once. |
 | **② "Drawer already open" coin fusion** | The POS screen says $8.30, then the customer adds $1.70 in coins. Instead of cancelling the sale, you fuse them: `30c + 70c → $1`, then `$8 + $1 + $1 → $10`. The cashier hands over one $10 note instead of five pieces. |
+| **④ Real cash guide** | Every note and coin in circulation for the selected currency, in its real colour, with coins drawn to relative size and in their real shape (for example the 12-sided AUD 50c and the 7-sided GBP 20p and 50p). Each entry shows what is pictured, its size, and any status such as the end of US penny production. Links go to the official central bank and mint sites. |
 | **③ Timed cashier speed drill** | Two modes: a **5-Customer Shift** and a **60-Second Rush**. The timer counts in milliseconds. Answers are checked against the greedy minimum number of notes and coins. Sound effects are synthesised with the Web Audio API, and **📋 Copy Emoji Scorecard** copies your result in one click. |
 
 All three views use the same scenario, so changing the bill, note, extra coins or currency updates every view. After a drill, **🔍 Explain last customer** loads the last customer from the drill into the visual views.
@@ -29,13 +30,17 @@ Each mode keeps a personal best per currency in `localStorage`. On a computer yo
 
 ## Currencies
 
-| Toggle | Codes | Notes | Coins | Smallest unit |
-| --- | --- | --- | --- | --- |
-| `$` | AUD · USD · CAD | $50, $20, $10, $5 | $2, $1, 50c, 20c, 10c, 5c | 5c (cash rounding: 1–2c down, 3–4c up) |
-| `£` | GBP | £50, £20, £10, £5 | £2, £1, 50p, 20p, 10p, 5p, 2p, 1p | 1p |
-| `€` | EUR | €50, €20, €10, €5 | €2, €1, 50c, 20c, 10c, 5c, 2c, 1c | 1c |
+Each currency uses the notes and coins that are really in circulation (checked October 2026). The **drill drawer** column lists the ones used to give change. The Real Cash tab also lists legal tender that is rarely used for change.
 
-The `$` set is shared by AUD, USD and CAD, as the project spec requires. It does not model regional differences such as US quarters.
+| Toggle | Notes in drawer | Coins in drawer | Shown but not used for change | Cash rounding |
+| --- | --- | --- | --- | --- |
+| `$` AUD | $100, $50, $20, $10, $5 | $2, $1, 50c, 20c, 10c, 5c | — | Nearest 5c |
+| `$` USD | $100, $50, $20, $10, $5, $1 | 25c, 10c, 5c, 1c | $2 note, 50c and $1 coins | To the cent. Penny production ended in Nov 2025 and some stores round to 5c |
+| `$` CAD | $100, $50, $20, $10, $5 | $2, $1, 25c, 10c, 5c | 50c coin | Nearest 5c (no penny since 2013) |
+| `£` GBP | £50, £20, £10, £5 | £2, £1, 50p, 20p, 10p, 5p, 2p, 1p | — | To the penny |
+| `€` EUR | €200, €100, €50, €20, €10, €5 | €2, €1, 50c, 20c, 10c, 5c, 2c, 1c | €500 (no longer issued) | To the cent. Some countries round to 5c |
+
+The `$` button opens AUD; use the currency menu to switch to USD or CAD. All of these coin systems are canonical, so working from the largest denomination down always gives the fewest pieces. The data is in the `CASH` table in `index.html`. If a central bank issues a new note, edit that table and bump `CACHE_VERSION` in `sw.js`.
 
 ## Integer-cents engine
 
@@ -60,7 +65,7 @@ https://<user>.github.io/<repo>/?bill=11.70&note=20&extra=1.70&currency=AUD
 | `note` | Note tendered | `20` |
 | `extra` | Late extra coins from the customer | `1.70` |
 | `currency` | `AUD`, `USD`, `CAD`, `GBP` or `EUR` | `GBP` |
-| `view` | `line`, `fusion` or `drill` (optional) | `fusion` |
+| `view` | `line`, `fusion`, `drill` or `cash` (optional) | `cash` |
 | `mode` | Drill mode `shift` or `rush` (optional) | `rush` |
 
 The address bar updates live as you change the scenario. **🔗 Copy share link** copies the current URL. Invalid values are ignored and the app shows a short message about them.
@@ -96,7 +101,7 @@ Because the site is static and is served from GitHub's CDN, every visitor gets t
 
 ### Shipping updates
 
-`sw.js` serves cached files first and refreshes them in the background. When you change `index.html` or `manifest.json`, also bump `CACHE_VERSION` in `sw.js` (for example to `snapchange-v2.0.1`). Returning visitors then get the new version on their next visit, and old caches are deleted.
+`sw.js` serves cached files first and refreshes them in the background. When you change `index.html` or `manifest.json`, also bump `CACHE_VERSION` in `sw.js` (for example to `snapchange-v2.1.1`). Returning visitors then get the new version on their next visit, and old caches are deleted.
 
 ## Accessibility
 

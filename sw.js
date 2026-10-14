@@ -2,7 +2,7 @@
  * Bump CACHE_VERSION whenever index.html / manifest.json change so clients pick up the new shell. */
 'use strict';
 
-const CACHE_VERSION = 'snapchange-v2.0.0';
+const CACHE_VERSION = 'snapchange-v2.1.0';
 const SHELL = './index.html';
 const PRECACHE = ['./', SHELL, './manifest.json', './icon.svg', './icon-192.png', './icon-512.png'];
 
