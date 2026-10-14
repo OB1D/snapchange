@@ -60,13 +60,19 @@ Every amount is stored and calculated as an **integer number of cents/pence**. F
 No IEEE 754 drift is possible, because no fractional currency value ever exists. The pure engine is exposed as `window.SnapChange` for console tinkering and tests.
 
 ### Multi-currency
-| Toggle | Codes | Notes | Coins |
-|---|---|---|---|
-| `$` | AUD · USD · CAD | $50 $20 $10 $5 | $2 $1 50c 20c 10c 5c |
-| `£` | GBP | £50 £20 £10 £5 | £2 £1 50p 20p 10p 5p 2p 1p |
-| `€` | EUR | €50 €20 €10 €5 | €2 €1 50c 20c 10c 5c 2c 1c |
+The header has four instant presets. CAD is available from the **Currency** dropdown in the scenario panel.
 
-The `$` toggle uses one shared training set of denominations for AUD, USD and CAD, as the project spec requires. It does not model each country's real coins (for example, the US quarter).
+| Header | Code | Notes / bills | Coins | Cash rounding |
+|---|---|---|---|---|
+| `A$` | AUD | $50 $20 $10 $5 | $2 $1 50c 20c 10c 5c | to 5c |
+| `US$` | USD | $50 $20 $10 $5 **$1** bills | 25c 10c 5c 1c | none (1c exists) |
+| `£` | GBP | £50 £20 £10 £5 | £2 £1 50p 20p 10p 5p 2p 1p | none |
+| `€` | EUR | €50 €20 €10 €5 | €2 €1 50c 20c 10c 5c 2c 1c | none |
+| — | CAD (dropdown) | $50 $20 $10 $5 | $2 $1 50c 20c 10c 5c | to 5c |
+
+Whether a denomination is paper or metal is set per currency. For example, `$1` is a **bill** in USD but a **coin** in AUD, and the tray, drawer pad, sounds and wording ("1× $10 bill" vs "1× $10 note") follow that. All five sets are canonical, so the greedy breakdown is always the true minimum. For example, US $8.30 is `$5 + 3×$1 + 25c + 5c`.
+
+If you switch currency while the tendered note doesn't exist in the new one (such as a US $1 bill going to AUD), the app picks the smallest real note that still covers the sale.
 
 ### URL deep-linking
 Every scenario can be shared as a link:
@@ -78,13 +84,18 @@ https://ob1d.github.io/snapchange/?bill=11.70&note=20&extra=1.70&currency=AUD
 | Param | Meaning | Example |
 |---|---|---|
 | `bill` | Sale total | `11.70` |
-| `note` | Note handed over | `20` |
+| `note` | Note / bill handed over | `20` |
 | `extra` | Late extra coins | `1.70` |
 | `currency` | `AUD` `USD` `CAD` `GBP` `EUR` (or `$` `£` `€`) | `GBP` |
 | `view` | Open tab: `line` · `fusion` · `drill` | `fusion` |
 | `mode` | Drill mode: `shift` · `rush` | `rush` |
 
 The URL bar updates live as you edit, and **🔗 Copy share link** copies it. Invalid links are rejected with a message and the default scenario is used instead.
+
+### Share QR Code
+The **Share QR Code** button in the header opens a dialog with a QR code for `https://ob1d.github.io/snapchange/`, so a friend can scan it straight onto their phone. The dialog also has **Copy link**, the native **Share…** sheet (where the browser supports it) and **Install app** (when the browser offers installation).
+
+The QR code is a static inline SVG (version 3, error-correction level M, 29×29 modules plus a 4-module quiet zone). It is encoded once ahead of time, so there's no QR library at runtime. If the site moves, regenerate the code and update both the `<path d>` inside `#qrSvg` and `APP_URL` in `index.html`. For example, with Node.js `qrcode`, use `QRCode.create(url, { errorCorrectionLevel: 'M' })` and draw one `h`-run per row of dark modules, offset by 4 for the quiet zone.
 
 ---
 
@@ -98,7 +109,7 @@ icon.svg, icon-192.png, icon-512.png   app icons (512 is also the maskable icon)
 .github/workflows/deploy.yml    deploys the repo root to GitHub Pages on every push to main
 ```
 
-There is no build step, bundler, framework or CDN. It is ~75 KB of hand-written HTML/CSS/JS.
+There is no build step, bundler, framework or CDN. It is ~80 KB of hand-written HTML/CSS/JS.
 
 ---
 
@@ -130,10 +141,10 @@ Opening `index.html` from disk also works. Only the offline cache is skipped in 
 4. **Forking?** All paths are relative (`./sw.js`, `./manifest.json`), so the app works at any sub-path with no config changes.
 
 ### Shipping updates
-Browsers serve the cached shell first and refresh it in the background. When you change `index.html` or the icons, **bump `CACHE_VERSION` in `sw.js`** (for example `snapchange-v2.0.1`). The new worker then installs, removes the old cache and takes over on the next visit.
+Browsers serve the cached shell first and refresh it in the background. When you change `index.html` or the icons, **bump `CACHE_VERSION` in `sw.js`** (currently `snapchange-v2.1.0`; next would be `snapchange-v2.1.1`). The new worker then installs, removes the old cache and takes over on the next visit.
 
 ### Why it scales
-The app is a static file on GitHub's CDN. It has no server, database or API calls, and is roughly 75 KB. After the first visit, every load comes from the service-worker cache, so millions of users cost the same as one.
+The app is a static file on GitHub's CDN. It has no server, database or API calls, and is roughly 80 KB. After the first visit, every load comes from the service-worker cache, so millions of users cost the same as one.
 
 ---
 

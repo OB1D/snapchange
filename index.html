@@ -52,18 +52,27 @@ p{margin:.4rem 0}
 .brand b{color:var(--emerald)}
 .brand small{font-size:.65rem;font-weight:800;padding:2px 6px;border-radius:6px;background:var(--emerald);color:#022c1a;letter-spacing:.04em}
 .brand svg{width:28px;height:28px;border-radius:7px;flex:none}
-@media (max-width:420px){
+.qr-label{display:none}
+@media (min-width:820px){ .topbar .qr-btn{width:auto;padding:0 12px} .qr-label{display:inline;font-size:.88rem} }
+@media (max-width:640px){ .topbar #installBtn{display:none} } /* offered inside the share dialog instead */
+@media (max-width:600px){
   .topbar .wrap{gap:6px}
-  .brand{font-size:.92rem;gap:6px;letter-spacing:.03em}
-  .brand small{display:none}
-  .seg button{min-width:36px;padding:0 8px}
-  .icon-btn{width:40px}
+  .brand span,.brand small{display:none}
+  #curToggle button{min-width:34px;padding:0 7px;font-size:.92rem}
+  .topbar .icon-btn{width:40px}
 }
 @media (max-width:360px){
-  .brand svg{display:none}
-  .seg button{min-width:32px;padding:0 6px}
-  .icon-btn{width:38px}
+  #curToggle button{min-width:30px;padding:0 5px;font-size:.85rem}
+  .topbar .icon-btn{width:38px}
 }
+dialog.qr-dialog{border:1px solid var(--line);border-radius:20px;background:var(--panel);color:var(--text);padding:0;
+  width:min(360px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;box-shadow:var(--shadow)}
+dialog.qr-dialog::backdrop{background:rgba(2,6,23,.66)}
+.qr-inner{padding:20px;text-align:center}
+.qr-box{background:#fff;border-radius:14px;padding:6px;margin:12px auto;width:min(264px,100%)}
+.qr-box svg{display:block;width:100%;height:auto}
+.qr-url{font-family:var(--mono);font-size:.9rem;word-break:break-all}
+.qr-url a{color:var(--emerald-ink)}
 
 /* controls */
 .btn{min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);
@@ -263,11 +272,16 @@ footer a{color:var(--emerald-ink)}
       <span>SNAP<b>CHANGE</b></span><small>V2</small>
     </div>
     <div class="seg" role="radiogroup" aria-label="Currency" id="curToggle">
-      <button type="button" role="radio" data-sym="$" aria-checked="true" title="Dollar (AUD / USD / CAD)">$</button>
-      <button type="button" role="radio" data-sym="£" aria-checked="false" title="Pound sterling (GBP)">£</button>
-      <button type="button" role="radio" data-sym="€" aria-checked="false" title="Euro (EUR)">€</button>
+      <button type="button" role="radio" data-code="AUD" aria-checked="true" aria-label="Australian dollar" title="Australian dollar (AUD)">A$</button>
+      <button type="button" role="radio" data-code="USD" aria-checked="false" aria-label="US dollar" title="US dollar (USD)">US$</button>
+      <button type="button" role="radio" data-code="GBP" aria-checked="false" aria-label="Pound sterling" title="Pound sterling (GBP)">£</button>
+      <button type="button" role="radio" data-code="EUR" aria-checked="false" aria-label="Euro" title="Euro (EUR)">€</button>
     </div>
     <button type="button" class="btn icon-btn" id="installBtn" hidden aria-label="Install app" title="Install app">⤓</button>
+    <button type="button" class="btn icon-btn qr-btn" id="qrBtn" aria-haspopup="dialog" aria-controls="qrDialog" aria-label="Share QR Code" title="Share QR Code">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="currentColor"><path d="M3 3h8v8H3zm2 2v4h4V5zm8-2h8v8h-8zm2 2v4h4V5zM3 13h8v8H3zm2 2v4h4v-4zm8-2h2v2h-2zm2 2h2v2h-2zm2-2h2v2h-2zm2 2h2v2h-2zm-6 2h2v2h-2zm4 0h2v2h-2zm-2 2h2v2h-2zm4 0h2v2h-2z"/></svg>
+      <span class="qr-label">Share QR Code</span>
+    </button>
     <button type="button" class="btn icon-btn" id="muteBtn" aria-pressed="false" aria-label="Mute sound effects" title="Sound on/off">🔊</button>
   </div>
 </header>
@@ -476,6 +490,26 @@ footer a{color:var(--emerald-ink)}
   <p>SnapChange V2 · strict integer-cents engine · works offline · no tracking, no dependencies.</p>
   <p><a href="https://github.com/OB1D/snapchange" rel="noopener">Source on GitHub</a></p>
 </footer>
+<dialog id="qrDialog" class="qr-dialog" aria-labelledby="qrTitle">
+  <div class="qr-inner">
+    <h2 id="qrTitle">Share SnapChange</h2>
+    <p class="lede">Point a friend's phone camera at this code to open the trainer.</p>
+    <div class="qr-box">
+      <!-- Static QR (version 3-M, 29×29 + 4-module quiet zone) encoding https://ob1d.github.io/snapchange/ -->
+      <svg id="qrSvg" viewBox="0 0 37 37" role="img" aria-label="QR code for https://ob1d.github.io/snapchange/" shape-rendering="crispEdges">
+        <rect width="37" height="37" fill="#fff"/>
+        <path fill="#000" d="M4 4h7v1h-7zM14 4h6v1h-6zM21 4h3v1h-3zM26 4h7v1h-7zM4 5h1v1h-1zM10 5h1v1h-1zM14 5h2v1h-2zM17 5h5v1h-5zM24 5h1v1h-1zM26 5h1v1h-1zM32 5h1v1h-1zM4 6h1v1h-1zM6 6h3v1h-3zM10 6h1v1h-1zM12 6h3v1h-3zM16 6h2v1h-2zM19 6h1v1h-1zM23 6h2v1h-2zM26 6h1v1h-1zM28 6h3v1h-3zM32 6h1v1h-1zM4 7h1v1h-1zM6 7h3v1h-3zM10 7h1v1h-1zM12 7h1v1h-1zM14 7h3v1h-3zM18 7h2v1h-2zM21 7h1v1h-1zM23 7h1v1h-1zM26 7h1v1h-1zM28 7h3v1h-3zM32 7h1v1h-1zM4 8h1v1h-1zM6 8h3v1h-3zM10 8h1v1h-1zM12 8h2v1h-2zM15 8h2v1h-2zM19 8h2v1h-2zM23 8h2v1h-2zM26 8h1v1h-1zM28 8h3v1h-3zM32 8h1v1h-1zM4 9h1v1h-1zM10 9h1v1h-1zM12 9h1v1h-1zM14 9h1v1h-1zM16 9h1v1h-1zM21 9h2v1h-2zM24 9h1v1h-1zM26 9h1v1h-1zM32 9h1v1h-1zM4 10h7v1h-7zM12 10h1v1h-1zM14 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM22 10h1v1h-1zM24 10h1v1h-1zM26 10h7v1h-7zM12 11h2v1h-2zM15 11h1v1h-1zM18 11h1v1h-1zM20 11h1v1h-1zM4 12h1v1h-1zM6 12h5v1h-5zM13 12h2v1h-2zM16 12h1v1h-1zM21 12h1v1h-1zM23 12h1v1h-1zM26 12h5v1h-5zM7 13h1v1h-1zM9 13h1v1h-1zM13 13h2v1h-2zM16 13h4v1h-4zM21 13h6v1h-6zM28 13h1v1h-1zM32 13h1v1h-1zM6 14h3v1h-3zM10 14h2v1h-2zM14 14h1v1h-1zM17 14h5v1h-5zM26 14h1v1h-1zM28 14h1v1h-1zM4 15h4v1h-4zM12 15h1v1h-1zM15 15h1v1h-1zM17 15h1v1h-1zM20 15h1v1h-1zM22 15h8v1h-8zM31 15h1v1h-1zM4 16h2v1h-2zM9 16h2v1h-2zM13 16h1v1h-1zM18 16h1v1h-1zM21 16h1v1h-1zM23 16h1v1h-1zM29 16h2v1h-2zM5 17h3v1h-3zM9 17h1v1h-1zM11 17h6v1h-6zM22 17h2v1h-2zM25 17h4v1h-4zM32 17h1v1h-1zM5 18h1v1h-1zM8 18h6v1h-6zM15 18h2v1h-2zM19 18h2v1h-2zM22 18h1v1h-1zM27 18h4v1h-4zM5 19h5v1h-5zM13 19h2v1h-2zM18 19h3v1h-3zM23 19h1v1h-1zM26 19h1v1h-1zM28 19h1v1h-1zM31 19h1v1h-1zM6 20h2v1h-2zM10 20h4v1h-4zM15 20h2v1h-2zM19 20h1v1h-1zM21 20h1v1h-1zM27 20h1v1h-1zM29 20h2v1h-2zM4 21h2v1h-2zM9 21h1v1h-1zM11 21h1v1h-1zM17 21h2v1h-2zM20 21h1v1h-1zM23 21h4v1h-4zM28 21h1v1h-1zM30 21h1v1h-1zM32 21h1v1h-1zM4 22h1v1h-1zM6 22h1v1h-1zM10 22h1v1h-1zM13 22h1v1h-1zM15 22h1v1h-1zM17 22h4v1h-4zM22 22h1v1h-1zM24 22h3v1h-3zM30 22h1v1h-1zM4 23h1v1h-1zM8 23h1v1h-1zM11 23h2v1h-2zM14 23h1v1h-1zM17 23h1v1h-1zM20 23h1v1h-1zM22 23h1v1h-1zM24 23h1v1h-1zM28 23h1v1h-1zM31 23h1v1h-1zM4 24h1v1h-1zM6 24h2v1h-2zM9 24h2v1h-2zM12 24h3v1h-3zM16 24h1v1h-1zM18 24h2v1h-2zM21 24h1v1h-1zM24 24h5v1h-5zM30 24h3v1h-3zM12 25h1v1h-1zM14 25h2v1h-2zM20 25h1v1h-1zM22 25h3v1h-3zM28 25h5v1h-5zM4 26h7v1h-7zM14 26h1v1h-1zM16 26h1v1h-1zM19 26h1v1h-1zM21 26h4v1h-4zM26 26h1v1h-1zM28 26h3v1h-3zM4 27h1v1h-1zM10 27h1v1h-1zM12 27h1v1h-1zM14 27h1v1h-1zM16 27h1v1h-1zM18 27h1v1h-1zM20 27h1v1h-1zM23 27h2v1h-2zM28 27h1v1h-1zM31 27h2v1h-2zM4 28h1v1h-1zM6 28h3v1h-3zM10 28h1v1h-1zM12 28h1v1h-1zM14 28h2v1h-2zM21 28h1v1h-1zM24 28h5v1h-5zM30 28h2v1h-2zM4 29h1v1h-1zM6 29h3v1h-3zM10 29h1v1h-1zM12 29h1v1h-1zM14 29h1v1h-1zM18 29h1v1h-1zM20 29h3v1h-3zM29 29h4v1h-4zM4 30h1v1h-1zM6 30h3v1h-3zM10 30h1v1h-1zM12 30h3v1h-3zM17 30h4v1h-4zM22 30h1v1h-1zM24 30h1v1h-1zM26 30h6v1h-6zM4 31h1v1h-1zM10 31h1v1h-1zM15 31h2v1h-2zM19 31h1v1h-1zM22 31h1v1h-1zM24 31h1v1h-1zM27 31h1v1h-1zM29 31h1v1h-1zM31 31h1v1h-1zM4 32h7v1h-7zM12 32h2v1h-2zM17 32h1v1h-1zM19 32h1v1h-1zM21 32h1v1h-1zM23 32h1v1h-1zM25 32h1v1h-1zM27 32h1v1h-1zM30 32h1v1h-1z"/>
+      </svg>
+    </div>
+    <p class="qr-url"><a href="https://ob1d.github.io/snapchange/" rel="noopener">ob1d.github.io/snapchange</a></p>
+    <div class="row center">
+      <button type="button" class="btn small" id="qrCopyBtn">🔗 Copy link</button>
+      <button type="button" class="btn small" id="qrShareBtn" hidden>📤 Share…</button>
+      <button type="button" class="btn small" id="qrInstallBtn" hidden>⤓ Install app</button>
+    </div>
+    <div class="row center" style="margin-top:10px"><button type="button" class="btn primary" id="qrCloseBtn">Done</button></div>
+  </div>
+</dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -487,16 +521,18 @@ footer a{color:var(--emerald-ink)}
  * Every amount is an integer number of minor units (cents / pence).
  * $21.70 === 2170. No floating-point currency math anywhere.
  * ===================================================================== */
+// `step` is the smallest coin: cash totals are rounded to it (AUD/CAD have no 1c or 2c coins).
 const CURRENCIES = {
-  AUD: { code: 'AUD', sym: '$', minor: 'c', name: 'Australian dollar', notes: [5000, 2000, 1000, 500], coins: [200, 100, 50, 20, 10, 5], step: 5 },
-  USD: { code: 'USD', sym: '$', minor: 'c', name: 'US dollar',         notes: [5000, 2000, 1000, 500], coins: [200, 100, 50, 20, 10, 5], step: 5 },
-  CAD: { code: 'CAD', sym: '$', minor: 'c', name: 'Canadian dollar',   notes: [5000, 2000, 1000, 500], coins: [200, 100, 50, 20, 10, 5], step: 5 },
-  GBP: { code: 'GBP', sym: '£', minor: 'p', name: 'Pound sterling',    notes: [5000, 2000, 1000, 500], coins: [200, 100, 50, 20, 10, 5, 2, 1], step: 1 },
-  EUR: { code: 'EUR', sym: '€', minor: 'c', name: 'Euro',              notes: [5000, 2000, 1000, 500], coins: [200, 100, 50, 20, 10, 5, 2, 1], step: 1 },
+  AUD: { code: 'AUD', sym: '$', minor: 'c', name: 'Australian dollar', noteWord: 'note', notes: [5000, 2000, 1000, 500],      coins: [200, 100, 50, 20, 10, 5], step: 5 },
+  USD: { code: 'USD', sym: '$', minor: 'c', name: 'US dollar',         noteWord: 'bill', notes: [5000, 2000, 1000, 500, 100], coins: [25, 10, 5, 1],            step: 1 },
+  CAD: { code: 'CAD', sym: '$', minor: 'c', name: 'Canadian dollar',   noteWord: 'note', notes: [5000, 2000, 1000, 500],      coins: [200, 100, 50, 20, 10, 5], step: 5 },
+  GBP: { code: 'GBP', sym: '£', minor: 'p', name: 'Pound sterling',    noteWord: 'note', notes: [5000, 2000, 1000, 500],      coins: [200, 100, 50, 20, 10, 5, 2, 1], step: 1 },
+  EUR: { code: 'EUR', sym: '€', minor: 'c', name: 'Euro',              noteWord: 'note', notes: [5000, 2000, 1000, 500],      coins: [200, 100, 50, 20, 10, 5, 2, 1], step: 1 },
 };
 const SYM_DEFAULT = { '$': 'AUD', '£': 'GBP', '€': 'EUR' };
 const MAX_CENTS = 9999999; // $99,999.99 hard ceiling keeps everything far inside Number.MAX_SAFE_INTEGER
 const DEFAULTS = { cur: 'AUD', bill: 1170, note: 2000, extra: 170 };
+const APP_URL = 'https://ob1d.github.io/snapchange/'; // must match the URL baked into the share QR code
 
 const cur = () => CURRENCIES[state.cur];
 const pad2 = (n) => String(n).padStart(2, '0');
@@ -546,6 +582,8 @@ function greedy(amount, denoms) {
   return { parts, count, rest };
 }
 const denoms = (code) => { const C = CURRENCIES[code || state.cur]; return C.notes.concat(C.coins); };
+/** A $1 is a bill in USD but a coin in AUD, so paper vs metal is decided per currency, never by size. */
+const isNote = (d) => cur().notes.includes(d) || d > cur().notes[0];
 /** Amount to slide both markers left so the bill lands on a friendly ten (or a whole dollar if under $10). */
 function friendlyShift(bill) { return bill >= 1000 ? bill % 1000 : bill % 100; }
 
@@ -667,40 +705,40 @@ async function copyText(text) {
 }
 const NOTE_COLORS = {
   AUD: { 500: '#c026d3', 1000: '#2563eb', 2000: '#dc2626', 5000: '#ca8a04' },
-  USD: { 500: '#4d7c0f', 1000: '#a16207', 2000: '#15803d', 5000: '#be185d' },
+  USD: { 100: '#3f6212', 500: '#4d7c0f', 1000: '#a16207', 2000: '#15803d', 5000: '#be185d' },
   CAD: { 500: '#2563eb', 1000: '#7c3aed', 2000: '#15803d', 5000: '#dc2626' },
   GBP: { 500: '#0f766e', 1000: '#b45309', 2000: '#7c3aed', 5000: '#dc2626' },
   EUR: { 500: '#64748b', 1000: '#dc2626', 2000: '#2563eb', 5000: '#ea580c' },
 };
 function denomColor(d) {
   const code = state.cur;
-  if (d >= 500) return (NOTE_COLORS[code] && NOTE_COLORS[code][d]) || '#059669';
+  if (isNote(d)) return (NOTE_COLORS[code] && NOTE_COLORS[code][d]) || '#059669';
   if (d >= 100) return '#e5b53a';                                       // gold $1/$2 (bi-metal approximated)
-  if ((code === 'GBP' && d <= 2) || (code === 'EUR' && d <= 5)) return '#c2703d'; // copper
+  if ((code === 'GBP' && d <= 2) || (code === 'EUR' && d <= 5) || (code === 'USD' && d === 1)) return '#c2703d'; // copper
   if (code === 'EUR') return '#d9b44a';                                 // Nordic gold 10/20/50c
   return '#cbd5e1';                                                     // silver
 }
 function moneyHTML(d, n, tag) {
-  const kind = d >= 500 ? 'note' : 'coin';
+  const kind = isNote(d) ? 'note' : 'coin';
   const el = tag || 'span';
   const attrs = el === 'button' ? ` type="button" data-d="${d}" aria-label="Add ${denomLabel(d)}"` : '';
   const qty = n > 1 ? `<span class="qty">×${n}</span>` : '';
   return `<${el} class="money ${kind}" style="--c:${denomColor(d)}"${attrs}>${denomLabel(d)}${qty}</${el}>`;
 }
 const partsHTML = (g) => g.parts.map((p) => moneyHTML(p.d, p.n)).join('');
-const partsText = (g) => g.parts.map((p) => `${p.n}× ${denomLabel(p.d)}${p.d >= 500 ? ' note' : ''}`).join(' + ') || 'nothing';
+const partsText = (g) => g.parts.map((p) => `${p.n}× ${denomLabel(p.d)}${isNote(p.d) ? ' ' + cur().noteWord : ''}`).join(' + ') || 'nothing';
 const pieces = (n) => n + (n === 1 ? ' piece' : ' pieces');
 
 /* =====================================================================
  * 5. SCENARIO PANEL (shared by all views)
  * ===================================================================== */
 function renderCurrencyControls() {
-  document.querySelectorAll('#curToggle button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.sym === cur().sym)));
-  document.querySelectorAll('[data-sym]').forEach((el) => { if (el.tagName !== 'BUTTON') el.textContent = cur().sym; });
+  document.querySelectorAll('#curToggle button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.code === state.cur)));
+  document.querySelectorAll('.money-input .sym').forEach((el) => { el.textContent = cur().sym; });
   $('inCode').value = state.cur;
   const sel = $('inNote'); const notes = cur().notes.slice().sort((a, b) => a - b);
   if (!notes.includes(state.note)) notes.push(state.note);
-  sel.innerHTML = notes.map((n) => `<option value="${n}">${fmtShort(n)}${cur().notes.includes(n) ? ' note' : ' (custom)'}</option>`).join('');
+  sel.innerHTML = notes.map((n) => `<option value="${n}">${fmtShort(n)}${cur().notes.includes(n) ? ' ' + cur().noteWord : ' (custom)'}</option>`).join('');
   sel.value = String(state.note);
 }
 function renderScenario() {
@@ -746,6 +784,11 @@ function setCurrency(code) {
   store.set('cur', code);
   const step = cur().step;
   state.bill = cashRound(state.bill, step); state.extra = cashRound(state.extra, step);
+  // e.g. a US $1 bill isn't a note in AUD: swap to the smallest real note that still covers the sale
+  if (!cur().notes.includes(state.note)) {
+    const n = cur().notes.slice().sort((a, b) => a - b).find((v) => v + state.extra >= state.bill);
+    if (n) state.note = n;
+  }
   stopShiftAnim(); state.shift = 0;
   $('scenarioMsg').textContent = '';
   renderAll(); writeURL(); Sfx.coin();
@@ -1009,9 +1052,10 @@ function startDrill() {
 function nextCustomer() {
   drill.cust = genCustomer(); drill.tray = []; drill.custT0 = performance.now();
   const c = drill.cust;
+  const w = cur().noteWord;
   const say = c.extra
-    ? `Hands you a ${fmtShort(c.note)} note… then finds <b>${fmt(c.extra)}</b> in coins.`
-    : `Hands you a ${fmtShort(c.note)} note.`;
+    ? `Hands you a ${fmtShort(c.note)} ${w}… then digs out <b>${fmt(c.extra)}</b> more.`
+    : `Hands you a ${fmtShort(c.note)} ${w}.`;
   $('ticket').innerHTML = `<div class="tl"><span>BILL</span><b>${fmt(c.bill)}</b></div>`
     + `<div class="tl"><span>CASH</span><span>${fmt(c.note)}${c.extra ? ' + ' + fmt(c.extra) : ''}</span></div>`
     + `<div class="tl big"><span>TENDERED</span><span>${fmt(c.tender)}</span></div>`
@@ -1031,7 +1075,7 @@ function addToTray(d) {
   if (!drill.running) return;
   if (drill.tray.length >= 40) { toast('Tray is full'); return; }
   drill.tray.push(d); renderTray();
-  d >= 500 ? Sfx.paper() : Sfx.coin();
+  isNote(d) ? Sfx.paper() : Sfx.coin();
 }
 function submitChange() {
   if (!drill.running || !drill.cust) return;
@@ -1130,14 +1174,8 @@ function setView(v, focus) {
 
 function wire() {
   // currency
-  $('curToggle').addEventListener('click', (e) => {
-    const b = e.target.closest('button'); if (!b) return;
-    const sym = b.dataset.sym;
-    if (cur().sym === sym) return;
-    const remembered = store.get('dollarCode', 'AUD');
-    setCurrency(sym === '$' ? (CURRENCIES[remembered] ? remembered : 'AUD') : SYM_DEFAULT[sym]);
-  });
-  $('inCode').addEventListener('change', (e) => { const c = e.target.value; if (CURRENCIES[c].sym === '$') store.set('dollarCode', c); setCurrency(c); });
+  $('curToggle').addEventListener('click', (e) => { const b = e.target.closest('button[data-code]'); if (b) setCurrency(b.dataset.code); });
+  $('inCode').addEventListener('change', (e) => setCurrency(e.target.value));
   // mute
   const syncMute = () => { $('muteBtn').textContent = state.muted ? '🔇' : '🔊'; $('muteBtn').setAttribute('aria-pressed', String(state.muted)); };
   $('muteBtn').addEventListener('click', () => { state.muted = !state.muted; store.set('muted', state.muted); syncMute(); Sfx.tap(); });
@@ -1195,17 +1233,41 @@ function wire() {
     if (ok) Sfx.coin();
   });
   document.addEventListener('keydown', (e) => {
-    if (!drill.running || state.view !== 'drill') return;
+    if (!drill.running || state.view !== 'drill' || $('qrDialog').open) return;
     if (e.target.matches('input, select, textarea')) return;
     if (e.key === 'Enter') { e.preventDefault(); submitChange(); }
     else if (e.key === 'Backspace') { e.preventDefault(); if (drill.tray.pop() !== undefined) renderTray(); }
     else if (e.key === 'Escape') { drill.tray = []; renderTray(); }
   });
-  // install prompt
+  // install prompt (header button on wide screens, share dialog everywhere)
   let deferred = null;
-  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; $('installBtn').hidden = false; });
-  $('installBtn').addEventListener('click', async () => { if (!deferred) return; deferred.prompt(); try { await deferred.userChoice; } catch (_) {} deferred = null; $('installBtn').hidden = true; });
-  window.addEventListener('appinstalled', () => { $('installBtn').hidden = true; toast('Installed — SnapChange now works offline'); });
+  const setInstallable = (on) => { $('installBtn').hidden = !on; $('qrInstallBtn').hidden = !on; };
+  const promptInstall = async () => {
+    if (!deferred) return;
+    deferred.prompt();
+    try { await deferred.userChoice; } catch (_) { /* dismissed */ }
+    deferred = null; setInstallable(false);
+  };
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; setInstallable(true); });
+  $('installBtn').addEventListener('click', promptInstall);
+  $('qrInstallBtn').addEventListener('click', promptInstall);
+  window.addEventListener('appinstalled', () => { setInstallable(false); toast('Installed — SnapChange now works offline'); });
+  // share QR code dialog
+  const qr = $('qrDialog');
+  const openQr = () => {
+    if (typeof qr.showModal === 'function') { if (!qr.open) qr.showModal(); } else qr.setAttribute('open', '');
+    Sfx.tap();
+  };
+  const closeQr = () => { if (typeof qr.close === 'function') qr.close(); else qr.removeAttribute('open'); };
+  $('qrBtn').addEventListener('click', openQr);
+  $('qrCloseBtn').addEventListener('click', closeQr);
+  qr.addEventListener('click', (e) => { if (e.target === qr) closeQr(); }); // backdrop click
+  qr.addEventListener('close', () => $('qrBtn').focus({ preventScroll: true }));
+  $('qrShareBtn').hidden = typeof navigator.share !== 'function';
+  $('qrCopyBtn').addEventListener('click', async () => { const ok = await copyText(APP_URL); toast(ok ? '🔗 Link copied' : APP_URL); });
+  $('qrShareBtn').addEventListener('click', () => {
+    navigator.share({ title: 'SnapChange', text: 'Learn to give cash change in 3 seconds ⚡', url: APP_URL }).catch(() => { /* cancelled */ });
+  });
   // keep the diagrams at true pixel scale across rotations / resizes
   let resizeTimer = 0;
   window.addEventListener('resize', () => {
