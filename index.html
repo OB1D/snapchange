@@ -1,0 +1,1240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SnapChange — 3-Second Cash Change Trainer</title>
+<meta name="description" content="Give cash change in 3 seconds. A constant-difference number line, a coin-fusion bucket and a timed cashier speed drill. Free, offline, installable.">
+<meta name="theme-color" content="#0b1220">
+<meta name="color-scheme" content="dark light">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SnapChange">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta property="og:type" content="website">
+<meta property="og:title" content="SnapChange — 3-Second Cash Change Trainer">
+<meta property="og:description" content="Slide to a friendly ten, fuse the coins, beat the rush. Learn to count change like a pro.">
+<meta property="og:image" content="./icon-512.png">
+<style>
+:root{
+  --bg:#0b1220; --panel:#111a2e; --panel2:#18233d; --line:#26344f; --text:#e6edf7; --muted:#94a3b8;
+  --emerald:#10b981; --emerald-ink:#34d399; --amber:#f59e0b; --cyan:#06b6d4; --rose:#fb7185; --blue:#60a5fa;
+  --lcd-bg:#04140c; --lcd-ink:#4ade80; --shadow:0 10px 30px rgba(0,0,0,.35); --radius:16px;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: light){
+  :root{ --bg:#f3f6fb; --panel:#ffffff; --panel2:#edf2f9; --line:#d4dde9; --text:#0f172a; --muted:#475569;
+    --emerald-ink:#047857; --rose:#e11d48; --blue:#2563eb; --shadow:0 8px 24px rgba(15,23,42,.08); }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.45;
+  padding-bottom:env(safe-area-inset-bottom);-webkit-tap-highlight-color:transparent}
+button,input,select{font:inherit;color:inherit}
+h1,h2,h3{line-height:1.2;margin:0}
+h2{font-size:1.15rem;letter-spacing:.01em}
+h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+p{margin:.4rem 0}
+[hidden]{display:none!important}
+.wrap{max-width:1000px;margin:0 auto;padding:0 16px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* top bar */
+.topbar{position:sticky;top:0;z-index:20;background:rgba(11,18,32,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+@media (prefers-color-scheme: light){ .topbar{background:rgba(243,246,251,.9)} }
+.topbar .wrap{display:flex;align-items:center;gap:10px;min-height:58px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:900;letter-spacing:.06em;font-size:1.05rem;margin-right:auto;white-space:nowrap}
+.brand b{color:var(--emerald)}
+.brand small{font-size:.65rem;font-weight:800;padding:2px 6px;border-radius:6px;background:var(--emerald);color:#022c1a;letter-spacing:.04em}
+.brand svg{width:28px;height:28px;border-radius:7px;flex:none}
+@media (max-width:420px){
+  .topbar .wrap{gap:6px}
+  .brand{font-size:.92rem;gap:6px;letter-spacing:.03em}
+  .brand small{display:none}
+  .seg button{min-width:36px;padding:0 8px}
+  .icon-btn{width:40px}
+}
+@media (max-width:360px){
+  .brand svg{display:none}
+  .seg button{min-width:32px;padding:0 6px}
+  .icon-btn{width:38px}
+}
+
+/* controls */
+.btn{min-height:44px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);
+  font-weight:750;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  transition:transform .08s ease, background .2s ease, opacity .2s}
+.btn:hover{border-color:var(--muted)}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn.primary{background:var(--emerald);border-color:transparent;color:#022c1a}
+.btn.warn{background:var(--amber);border-color:transparent;color:#3b2300}
+.btn.ghost{background:transparent}
+.btn.small{min-height:36px;padding:0 12px;font-size:.88rem}
+.icon-btn{width:44px;padding:0}
+:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+.seg{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px}
+.seg button{min-height:38px;min-width:42px;padding:0 10px;border:0;border-radius:9px;background:transparent;font-weight:800;cursor:pointer;color:var(--muted)}
+.seg button[aria-checked="true"],.seg button[aria-selected="true"]{background:var(--emerald);color:#022c1a}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.row.center{justify-content:center}
+.spacer{flex:1}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:14px 0;box-shadow:var(--shadow)}
+.card > header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin-bottom:8px}
+.kicker{font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--emerald-ink)}
+.lede{color:var(--muted);font-size:.95rem}
+
+/* scenario */
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:760px){ .fields{grid-template-columns:repeat(4,minmax(0,1fr))} }
+.field{display:flex;flex-direction:column;gap:4px;font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.field input,.field select{min-height:46px;width:100%;border-radius:10px;border:1px solid var(--line);background:var(--bg);
+  padding:0 12px;font-size:16px;font-weight:700;text-transform:none;letter-spacing:0;font-variant-numeric:tabular-nums}
+.field input[aria-invalid="true"]{border-color:var(--rose);box-shadow:0 0 0 2px rgba(251,113,133,.25)}
+.money-input{position:relative}
+.money-input .sym{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:800;color:var(--muted);pointer-events:none}
+.money-input input{padding-left:28px}
+.summary{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.pill{display:inline-flex;align-items:baseline;gap:6px;padding:6px 12px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);font-size:.85rem}
+.pill b{font-size:1rem;font-variant-numeric:tabular-nums}
+.pill.gap{background:rgba(16,185,129,.14);border-color:rgba(16,185,129,.5)}
+.pill.gap b{color:var(--emerald-ink)}
+.msg{font-size:.85rem;color:var(--muted);min-height:1.2em}
+.msg.err{color:var(--rose)}
+
+/* tabs */
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:14px}
+.tab{min-height:52px;border-radius:12px;border:1px solid var(--line);background:var(--panel);font-weight:800;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:4px 6px;color:var(--muted);font-size:.9rem}
+.tab small{font-weight:700;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;opacity:.8}
+.tab[aria-selected="true"]{background:var(--emerald);color:#022c1a;border-color:transparent}
+
+/* visualisations */
+.viz{width:100%;height:auto;display:block;overflow:visible;touch-action:pan-y}
+.viz text{font-family:var(--font)}
+.axis{stroke:var(--muted);stroke-width:2}
+.tick{stroke:var(--muted);stroke-width:1.5}
+.tick.major{stroke:var(--text);stroke-width:2}
+.tick-label{fill:var(--muted);font-size:13px;font-weight:600}
+.tick-label.major{fill:var(--text);font-weight:800}
+.ghost{stroke:var(--muted);stroke-dasharray:4 5;stroke-width:2;opacity:.6}
+.ghost-dot{fill:none;stroke:var(--muted);stroke-width:2;opacity:.6}
+.beam{fill:var(--emerald);filter:drop-shadow(0 4px 10px rgba(16,185,129,.45))}
+.beam-label{fill:#022c1a;font-weight:900;font-size:15px;letter-spacing:.04em}
+.mk-bill line{stroke:var(--rose);stroke-width:3}
+.mk-bill circle{fill:var(--rose)}
+.mk-bill text{fill:var(--rose)}
+.mk-tender line{stroke:var(--blue);stroke-width:3}
+.mk-tender circle{fill:var(--blue)}
+.mk-tender text{fill:var(--blue)}
+.mk-name{font-size:12px;font-weight:800;letter-spacing:.12em}
+.mk-val{font-size:20px;font-weight:900;font-variant-numeric:tabular-nums}
+.slider-wrap{margin:8px 0 4px}
+.slider-wrap label{display:flex;justify-content:space-between;font-weight:800;font-size:.9rem;margin-bottom:4px}
+.slider-wrap label span{color:var(--emerald-ink);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--emerald);height:32px;cursor:grab}
+.equation{font-family:var(--mono);font-size:clamp(1.05rem,4.4vw,1.6rem);font-weight:800;text-align:center;padding:10px;border-radius:12px;
+  background:var(--panel2);border:1px solid var(--line);margin:10px 0;font-variant-numeric:tabular-nums}
+.equation .t{color:var(--blue)} .equation .b{color:var(--rose)} .equation .g{color:var(--emerald-ink)}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;background:var(--emerald);color:#022c1a;font-weight:900;font-size:.8rem;margin-left:6px;
+  animation:pop .4s ease both}
+.seg-base{fill:var(--emerald)} .seg-odd{fill:var(--amber)} .seg-cents{fill:var(--cyan)}
+.seg-label{fill:#04121f;font-weight:900;font-size:14px}
+.bar-name{font-size:13px;font-weight:800;letter-spacing:.06em}
+.bar-name.t{fill:var(--blue)} .bar-name.b{fill:var(--rose)}
+.zap-mask{fill:var(--panel);opacity:.72}
+.cut{stroke:var(--rose);stroke-width:3;stroke-dasharray:6 4}
+.guide{stroke:var(--muted);stroke-dasharray:2 4;stroke-width:1.5}
+.bracket{stroke:var(--emerald);stroke-width:3;fill:none}
+.bracket-label{fill:var(--emerald-ink);font-weight:900;font-size:14px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.why{font-size:.9rem;color:var(--muted);border-left:3px solid var(--emerald);padding:4px 0 4px 12px;margin:10px 0 0}
+.why code{font-family:var(--mono);color:var(--text)}
+
+/* money chips */
+.money{display:inline-flex;align-items:center;justify-content:center;font-weight:900;user-select:none;-webkit-user-select:none;
+  font-variant-numeric:tabular-nums;position:relative;border:0;cursor:default;line-height:1}
+.money.note{min-width:70px;height:40px;padding:0 10px;border-radius:7px;background:var(--c);color:#fff;font-size:1rem;
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.28), inset 0 0 0 6px rgba(0,0,0,.12), 0 2px 6px rgba(0,0,0,.3);text-shadow:0 1px 1px rgba(0,0,0,.45)}
+.money.coin{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.75),transparent 42%),var(--c);
+  color:#1e1b16;font-size:.8rem;box-shadow:inset 0 0 0 3px rgba(0,0,0,.18),0 2px 5px rgba(0,0,0,.3)}
+.money .qty{position:absolute;top:-8px;right:-8px;min-width:22px;height:22px;padding:0 5px;border-radius:999px;background:var(--text);color:var(--bg);
+  font-size:.72rem;display:flex;align-items:center;justify-content:center;font-weight:900}
+.chips{display:flex;flex-wrap:wrap;gap:12px 10px;align-items:center;min-height:50px;padding:6px 2px}
+
+/* fusion */
+.pos-grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:760px){ .pos-grid{grid-template-columns:1.1fr 1fr 1fr} }
+.pos-screen{background:var(--lcd-bg);color:var(--lcd-ink);font-family:var(--mono);border-radius:12px;padding:12px 14px;border:2px solid #14532d;
+  box-shadow:inset 0 0 22px rgba(74,222,128,.12);font-size:.92rem}
+.lcd-row{display:flex;justify-content:space-between;gap:10px;padding:2px 0;font-variant-numeric:tabular-nums}
+.lcd-row.big{font-size:1.25rem;font-weight:900;border-top:1px dashed rgba(74,222,128,.35);margin-top:4px;padding-top:6px}
+.lcd-row.dim{opacity:.35}
+.lcd-row.hot{color:#fde047;animation:pop .45s ease both}
+.drawer{margin-top:8px;font-size:.72rem;letter-spacing:.16em;text-align:center;padding:4px;border-radius:6px;background:rgba(74,222,128,.14);
+  animation:blink 1.4s steps(2) infinite}
+.bucket{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px}
+.bucket .count{font-size:.8rem;color:var(--muted)}
+.fusion-stage{display:flex;flex-direction:column;gap:10px;margin:14px 0}
+.fstep{display:grid;grid-template-columns:34px 1fr;gap:4px 10px;align-items:center;padding:12px;border:1px dashed var(--line);border-radius:12px;
+  opacity:.5;transition:opacity .3s, border-color .3s, background .3s}
+.fstep.active{opacity:1;border-style:solid;border-color:var(--emerald);background:rgba(16,185,129,.07)}
+.fnum{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--panel2);font-weight:900;grid-row:span 2}
+.fstep.active .fnum{background:var(--emerald);color:#022c1a}
+.fexpr{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-weight:900}
+.fcap{font-size:.85rem;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;padding:7px 12px;border-radius:999px;font-weight:900;font-variant-numeric:tabular-nums;font-size:1rem}
+.chip.cents{background:var(--cyan);color:#022c33}
+.chip.dollars{background:var(--amber);color:#3b2300}
+.chip.result{background:var(--emerald);color:#022c1a}
+.op,.arrow{color:var(--muted);font-weight:900}
+.fstep .out{opacity:0;transform:scale(.3)}
+.fstep.active .in{animation:suck .55s ease both}
+.fstep.active .out{animation:pop .5s .45s ease both}
+.insight{padding:12px;border-radius:12px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.4);font-size:.92rem}
+
+/* drill */
+.hud{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:10px 0}
+.hud div{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center}
+.hud small{display:block;font-size:.62rem;letter-spacing:.12em;color:var(--muted);font-weight:800}
+.hud b{font-family:var(--mono);font-size:clamp(1rem,4.6vw,1.45rem);font-variant-numeric:tabular-nums}
+.hud .warn b{color:var(--rose)}
+.ticket{background:repeating-linear-gradient(0deg,transparent 0 27px,rgba(148,163,184,.12) 27px 28px),#fffdf5;color:#1f2937;border-radius:10px;padding:12px 14px;
+  font-family:var(--mono);box-shadow:0 4px 14px rgba(0,0,0,.25);position:relative}
+.ticket .tl{display:flex;justify-content:space-between;gap:10px;font-variant-numeric:tabular-nums}
+.ticket .tl.big{font-weight:900;font-size:1.15rem;border-top:2px dashed #9ca3af;margin-top:6px;padding-top:6px}
+.ticket .say{font-family:var(--font);font-size:.9rem;color:#374151;margin-top:6px}
+.tray{min-height:70px;border:2px dashed var(--line);border-radius:12px;margin:10px 0 4px;padding:8px;display:flex;flex-wrap:wrap;gap:12px 10px;align-items:center}
+.tray:empty::before{content:"Tap notes & coins below to build the change…";color:var(--muted);font-size:.9rem;padding-left:4px}
+.tray-total{font-size:.9rem;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.tray-total b{color:var(--text);font-variant-numeric:tabular-nums}
+.pad{display:flex;flex-wrap:wrap;gap:12px 10px;justify-content:center;margin:12px 0;padding:10px;border-radius:12px;background:var(--panel2)}
+.pad .money{cursor:pointer;transition:transform .07s ease}
+.pad .money:active{transform:scale(.9)}
+.pad .money.note{min-width:74px;height:46px}
+.pad .money.coin{width:52px;height:52px}
+.feedback{min-height:1.5em;font-weight:800;text-align:center;margin-top:8px}
+.feedback.good{color:var(--emerald-ink)} .feedback.meh{color:var(--amber)} .feedback.bad{color:var(--rose)}
+.results-emoji{font-size:clamp(1.6rem,8vw,2.4rem);text-align:center;letter-spacing:.08em;word-break:break-all}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+@media (min-width:640px){ .stats{grid-template-columns:repeat(4,minmax(0,1fr))} }
+.stats div{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.stats small{display:block;font-size:.65rem;letter-spacing:.1em;color:var(--muted);font-weight:800;text-transform:uppercase}
+.stats b{font-size:1.2rem;font-variant-numeric:tabular-nums}
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:.85rem;font-variant-numeric:tabular-nums}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{color:var(--muted);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase}
+pre.scorecard{font-family:var(--mono);background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;white-space:pre-wrap;word-break:break-word;margin:10px 0}
+.idle-hero{text-align:center;padding:10px 0}
+.idle-hero .big{font-size:2.6rem}
+.rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;font-size:.85rem;color:var(--muted);text-align:left;margin:12px 0}
+@media (min-width:640px){ .rules{grid-template-columns:repeat(4,minmax(0,1fr))} }
+.rules div{background:var(--panel2);border-radius:10px;padding:8px}
+
+footer{color:var(--muted);font-size:.8rem;text-align:center;padding:18px 0 28px}
+footer a{color:var(--emerald-ink)}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,30px);opacity:0;pointer-events:none;
+  background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:800;box-shadow:var(--shadow);transition:.25s ease;z-index:50;max-width:calc(100% - 32px);text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@keyframes pop{0%{opacity:0;transform:scale(.3)}70%{opacity:1;transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
+@keyframes suck{to{opacity:.4;transform:scale(.82)}}
+@keyframes blink{50%{opacity:.45}}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.shake{animation:shake .35s ease}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:1ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:1ms!important}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand" aria-label="SnapChange version 2">
+      <svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" fill="#0b1220"/><rect x="96" y="150" width="320" height="170" rx="22" fill="#10b981"/><circle cx="160" cy="352" r="50" fill="#f59e0b"/><circle cx="352" cy="352" r="50" fill="#06b6d4"/></svg>
+      <span>SNAP<b>CHANGE</b></span><small>V2</small>
+    </div>
+    <div class="seg" role="radiogroup" aria-label="Currency" id="curToggle">
+      <button type="button" role="radio" data-sym="$" aria-checked="true" title="Dollar (AUD / USD / CAD)">$</button>
+      <button type="button" role="radio" data-sym="£" aria-checked="false" title="Pound sterling (GBP)">£</button>
+      <button type="button" role="radio" data-sym="€" aria-checked="false" title="Euro (EUR)">€</button>
+    </div>
+    <button type="button" class="btn icon-btn" id="installBtn" hidden aria-label="Install app" title="Install app">⤓</button>
+    <button type="button" class="btn icon-btn" id="muteBtn" aria-pressed="false" aria-label="Mute sound effects" title="Sound on/off">🔊</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- Shared scenario: drives all three synchronized views -->
+  <section class="card" aria-labelledby="scenarioTitle">
+    <header>
+      <span class="kicker">The 3-second trick</span>
+      <h1 id="scenarioTitle" class="sr-only">Scenario</h1>
+      <span class="lede">Set a sale once — every view below updates in sync.</span>
+    </header>
+    <div class="fields">
+      <label class="field">Bill
+        <span class="money-input"><span class="sym" data-sym></span><input id="inBill" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="scenarioMsg"></span>
+      </label>
+      <label class="field">Note tendered
+        <select id="inNote"></select>
+      </label>
+      <label class="field">Extra coins (late)
+        <span class="money-input"><span class="sym" data-sym></span><input id="inExtra" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="scenarioMsg"></span>
+      </label>
+      <label class="field">Currency
+        <select id="inCode">
+          <option value="AUD">AUD — $</option>
+          <option value="USD">USD — $</option>
+          <option value="CAD">CAD — $</option>
+          <option value="GBP">GBP — £</option>
+          <option value="EUR">EUR — €</option>
+        </select>
+      </label>
+    </div>
+    <div class="summary" aria-live="polite">
+      <span class="pill">Tender <b id="sumTender"></b></span>
+      <span class="pill">POS screen <b id="sumPos"></b></span>
+      <span class="pill gap">Change <b id="sumChange"></b></span>
+    </div>
+    <div class="row">
+      <button type="button" class="btn small" id="shareBtn">🔗 Copy share link</button>
+      <button type="button" class="btn small" id="randomBtn">🎲 Random sale</button>
+      <button type="button" class="btn small ghost" id="resetScenarioBtn">↺ Default</button>
+      <span class="msg" id="scenarioMsg" role="status"></span>
+    </div>
+  </section>
+
+  <nav class="tabs" role="tablist" aria-label="Views">
+    <button type="button" class="tab" role="tab" id="tab-line" aria-controls="view-line" aria-selected="true">Number Line<small>View 1</small></button>
+    <button type="button" class="tab" role="tab" id="tab-fusion" aria-controls="view-fusion" aria-selected="false" tabindex="-1">Coin Fusion<small>View 2</small></button>
+    <button type="button" class="tab" role="tab" id="tab-drill" aria-controls="view-drill" aria-selected="false" tabindex="-1">Speed Drill<small>View 3</small></button>
+  </nav>
+
+  <!-- VIEW 1 -->
+  <section id="view-line" role="tabpanel" aria-labelledby="tab-line">
+    <article class="card">
+      <header><span class="kicker">View 1 · .EDU / .GOV visual</span><h2>Constant-Difference Number Line</h2></header>
+      <p class="lede">Bill and tender are joined by a rigid <b style="color:var(--emerald-ink)">CHANGE GAP</b> beam. Slide both markers together — the gap never changes.</p>
+      <svg id="nl" class="viz" viewBox="0 0 1000 200" role="img" aria-labelledby="nlTitle nlDesc">
+        <title id="nlTitle">Open number line from bill to tender</title>
+        <desc id="nlDesc"></desc>
+        <g id="nlTicks"></g>
+        <g id="nlGhosts">
+          <line class="ghost" id="ghBill" y1="20" y2="150"/><circle class="ghost-dot" id="ghBillDot" cy="150" r="8"/>
+          <line class="ghost" id="ghTender" y1="20" y2="150"/><circle class="ghost-dot" id="ghTenderDot" cy="150" r="8"/>
+        </g>
+        <rect id="nlBeam" class="beam" y="92" height="28" rx="6"/>
+        <text id="nlBeamLabel" class="beam-label" y="111" text-anchor="middle"></text>
+        <g id="mkBill" class="mk-bill">
+          <line x1="0" y1="14" x2="0" y2="150"/><circle cx="0" cy="150" r="9"/>
+          <text class="mk-name" x="-9" y="30" text-anchor="end">BILL</text>
+          <text class="mk-val" x="-9" y="54" text-anchor="end" id="mkBillVal"></text>
+        </g>
+        <g id="mkTender" class="mk-tender">
+          <line x1="0" y1="14" x2="0" y2="150"/><circle cx="0" cy="150" r="9"/>
+          <text class="mk-name" x="9" y="30">TENDER</text>
+          <text class="mk-val" x="9" y="54" id="mkTenderVal"></text>
+        </g>
+      </svg>
+      <div class="slider-wrap">
+        <label for="shiftRange">Slide to Friendly Ten <span id="shiftReadout">−$0.00</span></label>
+        <input type="range" id="shiftRange" min="0" max="170" step="1" value="0">
+      </div>
+      <div class="equation" aria-live="polite" id="equation"></div>
+      <div class="row">
+        <button type="button" class="btn primary" id="autoSlideBtn">Auto-Slide</button>
+        <button type="button" class="btn warn" id="zapBtn">⚡ Zap Overhang</button>
+        <button type="button" class="btn" id="slideResetBtn">↺ Reset</button>
+      </div>
+      <p class="why">Why it works: <code>a − b = (a − k) − (b − k)</code>. Take the same amount <code>k</code> off both numbers and the difference is untouched. Pick <code>k</code> so the bill lands on a friendly ten and the change is instant.</p>
+    </article>
+
+    <article class="card">
+      <header><span class="kicker">View 1 · Bar model</span><h2>Parallel Bar-Chop Diagram</h2></header>
+      <p class="lede" id="barLede"></p>
+      <svg id="bars" class="viz" viewBox="0 0 1000 232" role="img" aria-labelledby="barsTitle barsDesc">
+        <title id="barsTitle">Tender and bill as parallel bars</title>
+        <desc id="barsDesc"></desc>
+        <g id="barsG"></g>
+      </svg>
+      <div class="legend">
+        <span><i style="background:var(--emerald)"></i>Base note (tens)</span>
+        <span><i style="background:var(--amber)"></i>Odd dollars</span>
+        <span><i style="background:var(--cyan)"></i>Cents</span>
+        <span><i style="background:var(--panel2);border:2px dashed var(--rose)"></i>Zapped overhang</span>
+      </div>
+    </article>
+  </section>
+
+  <!-- VIEW 2 -->
+  <section id="view-fusion" role="tabpanel" aria-labelledby="tab-fusion" hidden>
+    <article class="card">
+      <header><span class="kicker">View 2 · Drawer already open</span><h2>POS Coin-Fusion Bucket</h2></header>
+      <p class="lede">The register has already printed the change. Then the customer says <i>“oh wait, I've got some coins.”</i> Don't re-key the sale — fuse the coins.</p>
+      <div class="pos-grid">
+        <div class="pos-screen" aria-label="Point of sale screen">
+          <div class="lcd-row"><span>TOTAL</span><span id="lcdTotal"></span></div>
+          <div class="lcd-row"><span>CASH</span><span id="lcdCash"></span></div>
+          <div class="lcd-row big"><span>CHANGE</span><span id="lcdChange"></span></div>
+          <div class="lcd-row dim" id="lcdLateRow"><span>+ LATE COINS</span><span id="lcdLate"></span></div>
+          <div class="lcd-row dim" id="lcdNewRow"><span>= HAND OVER</span><span id="lcdNew"></span></div>
+          <div class="drawer">▣ DRAWER OPEN</div>
+        </div>
+        <div class="bucket">
+          <h3>Screen change (drawer)</h3>
+          <div class="chips" id="chipsPos"></div>
+          <div class="count" id="countPos"></div>
+        </div>
+        <div class="bucket">
+          <h3>Customer's late coins</h3>
+          <div class="chips" id="chipsExtra"></div>
+          <div class="count" id="countExtra"></div>
+        </div>
+      </div>
+      <div class="fusion-stage" id="fusionStage" aria-live="polite"></div>
+      <div class="row">
+        <button type="button" class="btn primary" id="fuseBtn">⚡ Fuse!</button>
+        <button type="button" class="btn" id="fuseStepBtn">Step ▸</button>
+        <button type="button" class="btn" id="fuseResetBtn">↺ Reset</button>
+      </div>
+      <p class="insight" id="fusionInsight" style="margin-top:12px"></p>
+    </article>
+  </section>
+
+  <!-- VIEW 3 -->
+  <section id="view-drill" role="tabpanel" aria-labelledby="tab-drill" hidden>
+    <article class="card">
+      <header><span class="kicker">View 3 · Cashier speed drill</span><h2>Timed Cashier Speed Drill</h2></header>
+      <div class="row">
+        <div class="seg" role="radiogroup" aria-label="Drill mode" id="modeToggle">
+          <button type="button" role="radio" data-mode="shift" aria-checked="true">🧾 5-Customer Shift</button>
+          <button type="button" role="radio" data-mode="rush" aria-checked="false">🔥 60-Second Rush</button>
+        </div>
+      </div>
+      <div class="hud" aria-label="Drill status">
+        <div id="hudTimeBox"><small id="hudTimeLabel">TIME</small><b id="hudTime">0.000</b></div>
+        <div><small>CUSTOMER</small><b id="hudCust">–</b></div>
+        <div><small>SCORE</small><b id="hudScore">0</b></div>
+        <div><small>STREAK</small><b id="hudStreak">0</b></div>
+      </div>
+
+      <div id="drillIdle">
+        <div class="idle-hero">
+          <div class="big" aria-hidden="true">🧑‍💼💵⚡</div>
+          <p id="idleText"></p>
+          <p class="lede" id="bestText"></p>
+          <button type="button" class="btn primary" id="startBtn" style="min-width:200px;min-height:54px;font-size:1.1rem">▶ Start shift</button>
+        </div>
+        <div class="rules">
+          <div>⚡ <b>Snap</b> — exact, fewest pieces, under 3 s · 150</div>
+          <div>✅ <b>Exact</b> — right amount, fewest pieces · 100</div>
+          <div>🟨 <b>Clunky</b> — right amount, extra pieces · 40</div>
+          <div>❌ <b>Miss</b> — wrong amount · 0</div>
+        </div>
+        <p class="lede" style="text-align:center">Keyboard: <b>Enter</b> give change · <b>Backspace</b> undo · <b>Esc</b> clear</p>
+      </div>
+
+      <div id="drillPlay" hidden>
+        <div class="ticket" id="ticket" aria-live="polite"></div>
+        <div class="tray" id="tray" aria-label="Change you are giving"></div>
+        <div class="tray-total"><span>Giving <b id="trayTotal"></b></span><span id="trayCount"></span></div>
+        <div class="pad" id="pad" aria-label="Cash drawer"></div>
+        <div class="row center">
+          <button type="button" class="btn" id="undoBtn">↶ Undo</button>
+          <button type="button" class="btn" id="clearBtn">Clear</button>
+          <button type="button" class="btn primary" id="submitBtn" style="min-width:160px">✔ Give change</button>
+          <button type="button" class="btn ghost small" id="quitBtn">Quit</button>
+        </div>
+        <div class="feedback" id="feedback" aria-live="assertive"></div>
+      </div>
+
+      <div id="drillDone" hidden>
+        <h3 style="text-align:center;margin-top:6px" id="doneTitle">Shift complete</h3>
+        <div class="results-emoji" id="resEmoji" aria-label="Per-customer results"></div>
+        <div class="stats" id="resStats"></div>
+        <div class="table-wrap"><table id="resTable"></table></div>
+        <pre class="scorecard" id="scorecard"></pre>
+        <div class="row center">
+          <button type="button" class="btn primary" id="copyScoreBtn">📋 Copy Emoji Scorecard</button>
+          <button type="button" class="btn" id="againBtn">↻ Play again</button>
+        </div>
+      </div>
+    </article>
+  </section>
+</main>
+
+<footer class="wrap">
+  <p>SnapChange V2 · strict integer-cents engine · works offline · no tracking, no dependencies.</p>
+  <p><a href="https://github.com/OB1D/snapchange" rel="noopener">Source on GitHub</a></p>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* =====================================================================
+ * 1. INTEGER-CENTS ENGINE
+ * Every amount is an integer number of minor units (cents / pence).
+ * $21.70 === 2170. No floating-point currency math anywhere.
+ * ===================================================================== */
+const CURRENCIES = {
+  AUD: { code: 'AUD', sym: '$', minor: 'c', name: 'Australian dollar', notes: [5000, 2000, 1000, 500], coins: [200, 100, 50, 20, 10, 5], step: 5 },
+  USD: { code: 'USD', sym: '$', minor: 'c', name: 'US dollar',         notes: [5000, 2000, 1000, 500], coins: [200, 100, 50, 20, 10, 5], step: 5 },
+  CAD: { code: 'CAD', sym: '$', minor: 'c', name: 'Canadian dollar',   notes: [5000, 2000, 1000, 500], coins: [200, 100, 50, 20, 10, 5], step: 5 },
+  GBP: { code: 'GBP', sym: '£', minor: 'p', name: 'Pound sterling',    notes: [5000, 2000, 1000, 500], coins: [200, 100, 50, 20, 10, 5, 2, 1], step: 1 },
+  EUR: { code: 'EUR', sym: '€', minor: 'c', name: 'Euro',              notes: [5000, 2000, 1000, 500], coins: [200, 100, 50, 20, 10, 5, 2, 1], step: 1 },
+};
+const SYM_DEFAULT = { '$': 'AUD', '£': 'GBP', '€': 'EUR' };
+const MAX_CENTS = 9999999; // $99,999.99 hard ceiling keeps everything far inside Number.MAX_SAFE_INTEGER
+const DEFAULTS = { cur: 'AUD', bill: 1170, note: 2000, extra: 170 };
+
+const cur = () => CURRENCIES[state.cur];
+const pad2 = (n) => String(n).padStart(2, '0');
+
+/** Parse "11.70", "$11.7", "11", ".5", "11,70" into integer cents (or null). Pure string math. */
+function parseCents(input) {
+  if (input === null || input === undefined) return null;
+  let s = String(input).trim().replace(/^[$£€]\s*/, '').replace(/\s+/g, '');
+  if (s.indexOf('.') === -1 && /^\d*,\d{1,2}$/.test(s)) s = s.replace(',', '.'); // European decimal comma
+  s = s.replace(/,/g, '');                                                     // thousands separators
+  const m = /^(\d{0,7})(?:\.(\d{0,2}))?$/.exec(s);
+  if (!m || (m[1] === '' && !m[2])) return null;
+  const whole = m[1] === '' ? 0 : parseInt(m[1], 10);
+  const frac = parseInt((m[2] || '').padEnd(2, '0'), 10);
+  const cents = whole * 100 + frac;
+  return cents <= MAX_CENTS ? cents : null;
+}
+/** 1170 -> "$11.70" */
+function fmt(c, code) {
+  const C = CURRENCIES[code || state.cur];
+  const a = Math.abs(c);
+  return (c < 0 ? '−' : '') + C.sym + Math.floor(a / 100) + '.' + pad2(a % 100);
+}
+/** 2000 -> "$20", 2170 -> "$21.70" */
+function fmtShort(c) { return c % 100 === 0 ? cur().sym + Math.floor(c / 100) : fmt(c); }
+/** 70 -> "70c", 830 -> "$8.30" */
+function fmtMinor(c) { return c < 100 ? c + cur().minor : fmt(c); }
+/** Denomination label: 2000 -> "$20", 50 -> "50c" */
+function denomLabel(d) { return d >= 100 ? fmtShort(d) : d + cur().minor; }
+/** URL form: 1170 -> "11.70" */
+function toParam(c) { return Math.floor(c / 100) + '.' + pad2(c % 100); }
+function toParamShort(c) { return c % 100 === 0 ? String(Math.floor(c / 100)) : toParam(c); }
+/** Cash rounding for currencies whose smallest coin is 5c (1,2 -> down; 3,4 -> up). */
+function cashRound(c, step) {
+  if (step <= 1) return c;
+  const r = c % step;
+  return r * 2 >= step ? c - r + step : c - r;
+}
+/** Greedy minimum-piece breakdown. Canonical coin systems => greedy is optimal. */
+function greedy(amount, denoms) {
+  const parts = []; let rest = amount, count = 0;
+  for (const d of denoms) {
+    if (rest <= 0) break;
+    const n = Math.floor(rest / d);
+    if (n > 0) { parts.push({ d, n }); rest -= n * d; count += n; }
+  }
+  return { parts, count, rest };
+}
+const denoms = (code) => { const C = CURRENCIES[code || state.cur]; return C.notes.concat(C.coins); };
+/** Amount to slide both markers left so the bill lands on a friendly ten (or a whole dollar if under $10). */
+function friendlyShift(bill) { return bill >= 1000 ? bill % 1000 : bill % 100; }
+
+/* =====================================================================
+ * 2. STATE + URL DEEP LINKING
+ * ===================================================================== */
+const VIEWS = ['line', 'fusion', 'drill'];
+const state = { cur: DEFAULTS.cur, bill: DEFAULTS.bill, note: DEFAULTS.note, extra: DEFAULTS.extra, shift: 0, view: 'line', muted: false };
+const derived = () => {
+  const tender = state.note + state.extra;
+  return { tender, change: tender - state.bill, pos: state.note - state.bill, friendly: friendlyShift(state.bill) };
+};
+const $ = (id) => document.getElementById(id);
+const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('snapchange.v2.' + k); return v === null ? d : JSON.parse(v); } catch (_) { return d; } },
+  set(k, v) { try { localStorage.setItem('snapchange.v2.' + k, JSON.stringify(v)); } catch (_) { /* private mode */ } },
+};
+
+function validScenario(bill, note, extra) {
+  if (bill === null || note === null || extra === null) return 'Enter amounts like 11.70';
+  if (bill <= 0) return 'Bill must be more than zero';
+  if (note <= 0) return 'Pick a note';
+  if (note + extra < bill) return 'Customer hasn’t handed over enough yet';
+  if (note + extra > MAX_CENTS) return 'That’s a lot of cash — keep it under 99,999';
+  return '';
+}
+
+function readURL() {
+  const p = new URLSearchParams(location.search);
+  const raw = (p.get('currency') || '').trim();
+  const code = raw.toUpperCase();
+  if (CURRENCIES[code]) state.cur = code;
+  else if (SYM_DEFAULT[raw]) state.cur = SYM_DEFAULT[raw];
+  const has = p.has('bill') || p.has('note') || p.has('extra');
+  if (has) {
+    const step = CURRENCIES[state.cur].step;
+    const b = p.has('bill') ? parseCents(p.get('bill')) : DEFAULTS.bill;
+    const n = p.has('note') ? parseCents(p.get('note')) : DEFAULTS.note;
+    const e = p.has('extra') ? parseCents(p.get('extra')) : 0;
+    const err = validScenario(b === null ? null : cashRound(b, step), n, e === null ? null : cashRound(e, step));
+    if (!err) { state.bill = cashRound(b, step); state.note = n; state.extra = cashRound(e, step); }
+    else setTimeout(() => toast('Link ignored: ' + err), 300);
+  }
+  const v = p.get('view'); if (VIEWS.includes(v)) state.view = v;
+  const m = p.get('mode'); if (m === 'shift' || m === 'rush') drill.mode = m;
+}
+function scenarioQuery(withView) {
+  const q = new URLSearchParams();
+  q.set('bill', toParam(state.bill)); q.set('note', toParamShort(state.note));
+  q.set('extra', toParam(state.extra)); q.set('currency', state.cur);
+  if (withView && state.view !== 'line') q.set('view', state.view);
+  if (withView && state.view === 'drill' && drill.mode !== 'shift') q.set('mode', drill.mode);
+  return q.toString();
+}
+function writeURL() {
+  try { history.replaceState(null, '', location.pathname + '?' + scenarioQuery(true)); } catch (_) { /* sandboxed */ }
+}
+function shareURL() { return location.origin + location.pathname + '?' + scenarioQuery(true); }
+
+/* =====================================================================
+ * 3. WEB AUDIO SYNTH (procedural, zero samples)
+ * ===================================================================== */
+const Sfx = {
+  ctx: null, master: null,
+  init() {
+    if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return this.ctx; }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    try { this.ctx = new AC(); } catch (_) { return null; }
+    this.master = this.ctx.createGain(); this.master.gain.value = 0.55; this.master.connect(this.ctx.destination);
+    return this.ctx;
+  },
+  tone(freq, dur, o = {}) {
+    if (state.muted) return; const c = this.init(); if (!c) return;
+    const t = c.currentTime + (o.at || 0), osc = c.createOscillator(), g = c.createGain(), peak = o.g || 0.18;
+    osc.type = o.type || 'sine'; osc.frequency.setValueAtTime(freq, t);
+    if (o.to) osc.frequency.exponentialRampToValueAtTime(o.to, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(g); g.connect(this.master); osc.start(t); osc.stop(t + dur + 0.03);
+  },
+  noise(dur, o = {}) {
+    if (state.muted) return; const c = this.init(); if (!c) return;
+    const len = Math.max(1, Math.floor(c.sampleRate * dur)), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    src.buffer = buf; f.type = o.type || 'bandpass'; f.frequency.value = o.freq || 2000; f.Q.value = o.q || 1; g.gain.value = o.g || 0.15;
+    src.connect(f); f.connect(g); g.connect(this.master); src.start(c.currentTime + (o.at || 0));
+  },
+  coin()   { this.tone(2093, 0.12, { type: 'triangle', g: 0.16 }); this.tone(3136, 0.2, { g: 0.1, at: 0.035 }); },
+  paper()  { this.noise(0.16, { g: 0.3, freq: 1600, q: 0.6 }); this.noise(0.1, { g: 0.18, freq: 3800, q: 0.8, at: 0.06 }); },
+  tap()    { this.tone(520, 0.05, { type: 'square', g: 0.04 }); },
+  good()   { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => this.tone(f, 0.16, { type: 'triangle', g: 0.15, at: i * 0.065 })); },
+  snap()   { this.good(); this.tone(2093, 0.35, { g: 0.1, at: 0.28 }); this.noise(0.06, { g: 0.2, freq: 5000, q: 3, at: 0.27 }); },
+  meh()    { this.tone(440, 0.14, { type: 'triangle', g: 0.13 }); this.tone(370, 0.22, { type: 'triangle', g: 0.13, at: 0.12 }); },
+  bad()    { this.tone(190, 0.34, { type: 'sawtooth', g: 0.1, to: 80 }); this.tone(196, 0.34, { type: 'square', g: 0.04, to: 90 }); },
+  zap()    { this.tone(1500, 0.38, { type: 'sawtooth', g: 0.06, to: 160 }); this.noise(0.25, { g: 0.07, freq: 4500, q: 2 }); },
+  glide()  { this.tone(330, 0.9, { type: 'sine', g: 0.07, to: 520 }); },
+  fuse()   { this.tone(260, 0.3, { g: 0.15, to: 980 }); this.coin(); },
+  tick()   { this.tone(1250, 0.035, { type: 'square', g: 0.05 }); },
+  fanfare(){ [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => this.tone(f, i === 4 ? 0.55 : 0.15, { type: 'triangle', g: 0.15, at: i * 0.1 })); },
+};
+
+/* =====================================================================
+ * 4. UI HELPERS
+ * ===================================================================== */
+let toastTimer = 0;
+function toast(text) {
+  const t = $('toast'); t.textContent = text; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+async function copyText(text) {
+  try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); return true; } } catch (_) { /* fall through */ }
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+  document.body.appendChild(ta); ta.select();
+  let ok = false; try { ok = document.execCommand('copy'); } catch (_) { ok = false; }
+  ta.remove(); return ok;
+}
+const NOTE_COLORS = {
+  AUD: { 500: '#c026d3', 1000: '#2563eb', 2000: '#dc2626', 5000: '#ca8a04' },
+  USD: { 500: '#4d7c0f', 1000: '#a16207', 2000: '#15803d', 5000: '#be185d' },
+  CAD: { 500: '#2563eb', 1000: '#7c3aed', 2000: '#15803d', 5000: '#dc2626' },
+  GBP: { 500: '#0f766e', 1000: '#b45309', 2000: '#7c3aed', 5000: '#dc2626' },
+  EUR: { 500: '#64748b', 1000: '#dc2626', 2000: '#2563eb', 5000: '#ea580c' },
+};
+function denomColor(d) {
+  const code = state.cur;
+  if (d >= 500) return (NOTE_COLORS[code] && NOTE_COLORS[code][d]) || '#059669';
+  if (d >= 100) return '#e5b53a';                                       // gold $1/$2 (bi-metal approximated)
+  if ((code === 'GBP' && d <= 2) || (code === 'EUR' && d <= 5)) return '#c2703d'; // copper
+  if (code === 'EUR') return '#d9b44a';                                 // Nordic gold 10/20/50c
+  return '#cbd5e1';                                                     // silver
+}
+function moneyHTML(d, n, tag) {
+  const kind = d >= 500 ? 'note' : 'coin';
+  const el = tag || 'span';
+  const attrs = el === 'button' ? ` type="button" data-d="${d}" aria-label="Add ${denomLabel(d)}"` : '';
+  const qty = n > 1 ? `<span class="qty">×${n}</span>` : '';
+  return `<${el} class="money ${kind}" style="--c:${denomColor(d)}"${attrs}>${denomLabel(d)}${qty}</${el}>`;
+}
+const partsHTML = (g) => g.parts.map((p) => moneyHTML(p.d, p.n)).join('');
+const partsText = (g) => g.parts.map((p) => `${p.n}× ${denomLabel(p.d)}${p.d >= 500 ? ' note' : ''}`).join(' + ') || 'nothing';
+const pieces = (n) => n + (n === 1 ? ' piece' : ' pieces');
+
+/* =====================================================================
+ * 5. SCENARIO PANEL (shared by all views)
+ * ===================================================================== */
+function renderCurrencyControls() {
+  document.querySelectorAll('#curToggle button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.sym === cur().sym)));
+  document.querySelectorAll('[data-sym]').forEach((el) => { if (el.tagName !== 'BUTTON') el.textContent = cur().sym; });
+  $('inCode').value = state.cur;
+  const sel = $('inNote'); const notes = cur().notes.slice().sort((a, b) => a - b);
+  if (!notes.includes(state.note)) notes.push(state.note);
+  sel.innerHTML = notes.map((n) => `<option value="${n}">${fmtShort(n)}${cur().notes.includes(n) ? ' note' : ' (custom)'}</option>`).join('');
+  sel.value = String(state.note);
+}
+function renderScenario() {
+  const { tender, change, pos } = derived();
+  if (document.activeElement !== $('inBill')) $('inBill').value = toParam(state.bill);
+  if (document.activeElement !== $('inExtra')) $('inExtra').value = toParam(state.extra);
+  $('inNote').value = String(state.note);
+  $('sumTender').textContent = fmt(tender);
+  $('sumPos').textContent = pos >= 0 ? fmt(pos) : 'owing ' + fmt(-pos);
+  $('sumChange').textContent = fmt(change);
+}
+function setScenario(bill, note, extra, quiet) {
+  const step = cur().step;
+  const b = bill === null ? null : cashRound(bill, step), e = extra === null ? null : cashRound(extra, step);
+  const err = validScenario(b, note, e);
+  const msg = $('scenarioMsg');
+  $('inBill').setAttribute('aria-invalid', String(!!err && (b === null || b <= 0 || err.includes('enough'))));
+  $('inExtra').setAttribute('aria-invalid', String(!!err && e === null));
+  if (err) { msg.textContent = err; msg.className = 'msg err'; return false; }
+  const rounded = (b !== bill) || (e !== extra);
+  msg.textContent = rounded ? `Cash-rounded to the nearest ${step}${cur().minor}` : '';
+  msg.className = 'msg';
+  state.bill = b; state.note = note; state.extra = e;
+  stopShiftAnim(); state.shift = 0;
+  renderAll();
+  writeURL();
+  if (!quiet) Sfx.tap();
+  return true;
+}
+function renderAll() {
+  renderCurrencyControls();
+  renderScenario();
+  renderLineStatic();
+  setShift(0, true);
+  renderFusion();
+  renderPad();
+  renderDrillIdle();
+}
+function setCurrency(code) {
+  if (!CURRENCIES[code] || code === state.cur) return;
+  if (drill.running) endDrill(true);
+  state.cur = code;
+  store.set('cur', code);
+  const step = cur().step;
+  state.bill = cashRound(state.bill, step); state.extra = cashRound(state.extra, step);
+  stopShiftAnim(); state.shift = 0;
+  $('scenarioMsg').textContent = '';
+  renderAll(); writeURL(); Sfx.coin();
+}
+
+/* =====================================================================
+ * 6. VIEW 1 — NUMBER LINE + BAR-CHOP (both driven by state.shift)
+ * ===================================================================== */
+const NL = { lo: 0, hi: 1, L: 50, R: 950, W: 1000 };
+const nlX = (c) => NL.L + (c - NL.lo) * (NL.R - NL.L) / (NL.hi - NL.lo);
+/** SVG user units == CSS pixels, so labels stay readable on phones. The scenario card is always visible. */
+function vizWidth() {
+  const card = $('scenarioTitle').closest('.card');
+  const w = card ? card.clientWidth - 32 : 960;
+  return Math.round(Math.max(300, Math.min(1000, w || 960)));
+}
+function renderLineStatic() {
+  const { tender, friendly } = derived();
+  NL.W = vizWidth(); NL.L = NL.W < 600 ? 66 : 50; NL.R = NL.W - NL.L;
+  $('nl').setAttribute('viewBox', `0 0 ${NL.W} 200`);
+  $('bars').setAttribute('viewBox', `0 0 ${NL.W} 232`);
+  const minV = state.bill - friendly, maxV = tender;
+  const span = Math.max(100, maxV - minV);
+  const padV = Math.max(40, Math.round(span * 0.14));
+  NL.lo = Math.max(0, minV - padV); NL.hi = Math.max(NL.lo + 100, maxV + padV);
+  const steps = [5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000];
+  const maxTicks = Math.max(4, Math.min(9, Math.floor((NL.R - NL.L) / 70)));
+  const step = steps.find((s) => (NL.hi - NL.lo) / s <= maxTicks) || 2000000;
+  const majorEvery = step >= 1000 ? step * 2 : 1000;
+  let h = `<line class="axis" x1="${NL.L - 30}" y1="150" x2="${NL.R + 30}" y2="150"/>`
+        + `<path d="M${NL.R + 30} 150 l-10 -6 v12 z" fill="var(--muted)"/><path d="M${NL.L - 30} 150 l10 -6 v12 z" fill="var(--muted)"/>`;
+  for (let v = Math.ceil(NL.lo / step) * step; v <= NL.hi; v += step) {
+    const x = nlX(v).toFixed(1), major = v % majorEvery === 0;
+    h += `<line class="tick${major ? ' major' : ''}" x1="${x}" y1="${major ? 140 : 144}" x2="${x}" y2="${major ? 160 : 156}"/>`
+       + `<text class="tick-label${major ? ' major' : ''}" x="${x}" y="182" text-anchor="middle">${fmtShort(v)}</text>`;
+  }
+  $('nlTicks').innerHTML = h;
+  const xb = nlX(state.bill).toFixed(1), xt = nlX(tender).toFixed(1);
+  for (const [id, x] of [['ghBill', xb], ['ghTender', xt]]) { $(id).setAttribute('x1', x); $(id).setAttribute('x2', x); $(id + 'Dot').setAttribute('cx', x); }
+
+  const r = $('shiftRange');
+  r.max = String(friendly); r.step = String(cur().step); r.disabled = friendly === 0;
+  const label = friendly === 0 ? 'Already friendly' : `Auto-Slide (−${fmt(friendly)})`;
+  $('autoSlideBtn').textContent = label; $('autoSlideBtn').disabled = friendly === 0;
+  $('zapBtn').disabled = friendly === 0;
+  $('slideResetBtn').disabled = friendly === 0;
+}
+function renderLineDynamic() {
+  const s = state.shift, { tender, change, friendly } = derived();
+  const b = state.bill - s, t = tender - s, xb = nlX(b), xt = nlX(t);
+  const beam = $('nlBeam');
+  beam.setAttribute('x', Math.min(xb, xt).toFixed(1)); beam.setAttribute('width', Math.max(2, Math.abs(xt - xb)).toFixed(1));
+  const lbl = $('nlBeamLabel');
+  lbl.setAttribute('x', ((xb + xt) / 2).toFixed(1));
+  lbl.textContent = Math.abs(xt - xb) > 180 ? `CHANGE GAP ${fmt(change)}` : fmt(change);
+  $('mkBill').setAttribute('transform', `translate(${xb.toFixed(1)} 0)`);
+  $('mkTender').setAttribute('transform', `translate(${xt.toFixed(1)} 0)`);
+  $('mkBillVal').textContent = fmt(b); $('mkTenderVal').textContent = fmt(t);
+  $('nlGhosts').style.opacity = s > 0 ? '1' : '0';
+  $('nlDesc').textContent = `Bill marker at ${fmt(b)}, tender marker at ${fmt(t)}, change gap ${fmt(change)}.`;
+  $('shiftRange').value = String(s);
+  $('shiftReadout').textContent = '−' + fmt(s);
+  const atFriendly = friendly > 0 && s === friendly;
+  $('equation').innerHTML = `<span class="t">${fmt(t)}</span> − <span class="b">${fmt(b)}</span> = <span class="g">${fmt(change)}</span>`
+    + (atFriendly ? '<span class="badge">✨ friendly!</span>' : '');
+}
+function renderBars() {
+  const s = state.shift, { tender, change, friendly } = derived();
+  const L = 4, R = NL.W - 4, H = 44, sc = (R - L) / Math.max(tender, 1), X = (v) => L + v * sc;
+  const bar = (v, y, name, cls) => {
+    const base = v - (v % 1000), odd = (v % 1000) - (v % 100), cents = v % 100;
+    let x = L;
+    let out = `<text class="bar-name ${cls}" x="${L}" y="${y - 9}">${name} ${fmt(v - s)}${s ? ` <tspan opacity=".6">(was ${fmt(v)})</tspan>` : ''}</text>`;
+    for (const [w, c, lab] of [[base, 'seg-base', fmtShort(base)], [odd, 'seg-odd', fmtShort(odd)], [cents, 'seg-cents', cents + cur().minor]]) {
+      if (!w) continue;
+      const ww = w * sc;
+      out += `<rect class="${c}" x="${x.toFixed(1)}" y="${y}" width="${ww.toFixed(1)}" height="${H}"/>`;
+      if (ww > 38) out += `<text class="seg-label" x="${(x + ww / 2).toFixed(1)}" y="${y + 28}" text-anchor="middle">${lab}</text>`;
+      x += ww;
+    }
+    if (s > 0) {
+      const zx = X(v - s);
+      out += `<rect class="zap-mask" x="${zx.toFixed(1)}" y="${y - 3}" width="${(X(v) - zx + 2).toFixed(1)}" height="${H + 6}"/>`
+           + `<line class="cut" x1="${zx.toFixed(1)}" y1="${y - 6}" x2="${zx.toFixed(1)}" y2="${y + H + 6}"/>`;
+    }
+    return out;
+  };
+  const yT = 34, yB = 122, yG = 206;
+  const xb = X(state.bill - s), xt = X(tender - s);
+  let h = bar(tender, yT, 'TENDER', 't') + bar(state.bill, yB, 'BILL', 'b');
+  h += `<line class="guide" x1="${xt.toFixed(1)}" y1="${yT + H}" x2="${xt.toFixed(1)}" y2="${yG - 8}"/>`
+     + `<line class="guide" x1="${xb.toFixed(1)}" y1="${yB + H}" x2="${xb.toFixed(1)}" y2="${yG - 8}"/>`
+     + `<path class="bracket" d="M${xb.toFixed(1)} ${yG - 12} V${yG} H${xt.toFixed(1)} V${yG - 12}"/>`
+     + `<text class="bracket-label" x="${((xb + xt) / 2).toFixed(1)}" y="${yG + 20}" text-anchor="middle">gap ${fmt(change)}</text>`;
+  $('barsG').innerHTML = h;
+  $('barsDesc').textContent = `Tender bar ${fmt(tender - s)}, bill bar ${fmt(state.bill - s)}, difference ${fmt(change)}.`;
+  const fOdd = friendly - (friendly % 100), fC = friendly % 100;
+  const zapParts = [fOdd ? fmtShort(fOdd) : '', fC ? fC + cur().minor : ''].filter(Boolean).join(' and ');
+  $('barLede').textContent = friendly
+    ? `Zap the matching ${zapParts} overhang off both bars at once. Both shrink by ${fmt(friendly)} — the ${fmt(change)} gap doesn't move.`
+    : `The bill is already a friendly number, so the gap (${fmt(change)}) reads straight off the bars.`;
+}
+let shiftAnim = 0;
+function stopShiftAnim() { if (shiftAnim) cancelAnimationFrame(shiftAnim); shiftAnim = 0; }
+function setShift(s, silent) {
+  const { friendly } = derived();
+  const prev = state.shift;
+  state.shift = Math.max(0, Math.min(friendly, Math.round(s)));
+  renderLineDynamic(); renderBars();
+  if (!silent && friendly > 0 && state.shift === friendly && prev !== friendly) Sfx.good();
+}
+function animateShift(target, ms) {
+  stopShiftAnim();
+  const from = state.shift;
+  if (from === target) return;
+  if (reduceMotion) { setShift(target); return; }
+  const t0 = performance.now(), dur = ms || 1100;
+  const stepFn = (now) => {
+    const k = Math.min(1, (now - t0) / dur);
+    const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; // easeInOutCubic
+    setShift(from + (target - from) * e);
+    shiftAnim = k < 1 ? requestAnimationFrame(stepFn) : 0;
+  };
+  shiftAnim = requestAnimationFrame(stepFn);
+}
+
+/* =====================================================================
+ * 7. VIEW 2 — POS "DRAWER ALREADY OPEN" COIN-FUSION
+ * ===================================================================== */
+const fusion = { steps: [], idx: 0, timer: 0 };
+function fusionPlan() {
+  const { pos, change } = derived(), e = state.extra;
+  const steps = [];
+  if (pos < 0 || e === 0) {
+    steps.push({ kind: 'hand', ins: [], outHTML: partsHTML(greedy(change, denoms())), cap: `Hand over ${partsText(greedy(change, denoms()))} — ${pieces(greedy(change, denoms()).count)}` });
+    return steps;
+  }
+  const pc = pos % 100, ec = e % 100, sum = pc + ec, carry = Math.floor(sum / 100), left = sum % 100;
+  const pd = pos - pc, ed = e - ec, dollars = pd + ed + carry * 100;
+  if (pc || ec) {
+    const ins = [pc, ec].filter((v) => v > 0).map((v) => ({ cls: 'cents', label: fmtMinor(v) }));
+    const outs = [];
+    if (carry) outs.push({ cls: 'dollars', label: fmt(100) });
+    if (left || !carry) outs.push({ cls: 'cents', label: fmtMinor(left) });
+    steps.push({ kind: 'cents', ins, outs, cap: carry ? (left ? `Cents fuse into a whole ${cur().sym}1 with ${fmtMinor(left)} left over` : `Cents fuse into a whole ${fmt(100)}`) : 'Cents combine' });
+  }
+  if (dollars > 0) {
+    const ins = [pd, ed, carry * 100].filter((v) => v > 0).map((v) => ({ cls: 'dollars', label: fmt(v) }));
+    steps.push({ kind: 'dollars', ins, outs: [{ cls: 'result', label: fmt(dollars) }], cap: ins.length > 1 ? 'Dollars stack into one amount' : 'Dollars carry straight across' });
+  }
+  const g = greedy(change, denoms());
+  steps.push({ kind: 'hand', ins: [], outHTML: partsHTML(g), cap: `Hand over ${partsText(g)} — ${pieces(g.count)}, the minimum` });
+  return steps;
+}
+function renderFusion() {
+  clearTimeout(fusion.timer);
+  const { pos, change } = derived(), e = state.extra;
+  $('lcdTotal').textContent = fmt(state.bill);
+  $('lcdCash').textContent = fmt(state.note);
+  $('lcdChange').textContent = pos >= 0 ? fmt(pos) : 'DUE ' + fmt(-pos);
+  $('lcdLate').textContent = fmt(e); $('lcdNew').textContent = fmt(change);
+  $('lcdLateRow').className = 'lcd-row dim'; $('lcdNewRow').className = 'lcd-row dim';
+  const gp = greedy(Math.max(pos, 0), denoms()), ge = greedy(e, denoms()), gc = greedy(change, denoms());
+  $('chipsPos').innerHTML = pos > 0 ? partsHTML(gp) : '<span class="lede">—</span>';
+  $('countPos').textContent = pos > 0 ? `${fmt(pos)} · ${pieces(gp.count)}` : (pos === 0 ? 'Exact — no change' : 'Note alone doesn’t cover the bill');
+  $('chipsExtra').innerHTML = e > 0 ? partsHTML(ge) : '<span class="lede">No late coins</span>';
+  $('countExtra').textContent = e > 0 ? `${fmt(e)} · ${pieces(ge.count)}` : 'Set “Extra coins” above (try 1.70)';
+  fusion.steps = fusionPlan(); fusion.idx = 0;
+  $('fusionStage').innerHTML = fusion.steps.map((s, i) => {
+    const ins = (s.ins || []).map((c, j) => (j ? '<span class="op">+</span>' : '') + `<span class="chip ${c.cls} in">${c.label}</span>`).join('');
+    const outs = s.outHTML ? `<span class="chips out" style="min-height:0;padding:0">${s.outHTML}</span>`
+      : s.outs.map((c, j) => (j ? '<span class="op out">+</span>' : '') + `<span class="chip ${c.cls} out">${c.label}</span>`).join('');
+    return `<div class="fstep" data-i="${i}"><span class="fnum">${i + 1}</span><div class="fexpr">${ins}${ins ? '<span class="arrow">→</span>' : ''}${outs}</div><div class="fcap">${s.cap}</div></div>`;
+  }).join('');
+  $('fuseStepBtn').disabled = false;
+  if (pos < 0) {
+    $('fusionInsight').textContent = `The ${fmt(state.note)} note doesn't cover the ${fmt(state.bill)} bill on its own, so the drawer never opened. Change on the full ${fmt(state.note + e)} tender is ${fmt(change)}.`;
+  } else if (e === 0) {
+    $('fusionInsight').textContent = `No late coins, so there's nothing to fuse — give ${partsText(gc)}. Add extra coins above (for example ${fmtMinor(state.bill % 100 || 50)}) to see fusion.`;
+  } else {
+    const before = gp.count;
+    $('fusionInsight').innerHTML = `Without fusion you'd count out <b>${pieces(before)}</b> (${partsText(gp)}) and drop ${pieces(ge.count)} of coins in the drawer. `
+      + `Fused, you hand over <b>${pieces(gc.count)}</b>: ${partsText(gc)}. ${gc.count < before ? `That's ${pieces(before - gc.count)} fewer.` : ''}`;
+  }
+}
+function fusionStep() {
+  if (fusion.idx >= fusion.steps.length) return false;
+  const row = $('fusionStage').querySelector(`[data-i="${fusion.idx}"]`);
+  if (row) row.classList.add('active');
+  const kind = fusion.steps[fusion.idx].kind;
+  fusion.idx++;
+  if (kind === 'hand') { Sfx.paper(); setTimeout(() => Sfx.good(), 250); $('lcdLateRow').className = 'lcd-row'; $('lcdNewRow').className = 'lcd-row big hot'; }
+  else Sfx.fuse();
+  if (fusion.idx >= fusion.steps.length) $('fuseStepBtn').disabled = true;
+  return true;
+}
+function fusionPlay() {
+  renderFusion();
+  const go = () => { if (fusionStep()) fusion.timer = setTimeout(go, reduceMotion ? 250 : 1250); };
+  fusion.timer = setTimeout(go, 120);
+}
+
+/* =====================================================================
+ * 8. VIEW 3 — TIMED CASHIER SPEED DRILL
+ * ===================================================================== */
+const RUSH_MS = 60000, SHIFT_CUSTOMERS = 5, SNAP_MS = 3000;
+const POINTS = { snap: 150, ok: 100, over: 40, miss: 0 };
+const EMOJI = { snap: '⚡', ok: '✅', over: '🟨', miss: '❌' };
+const drill = { mode: 'shift', running: false, t0: 0, custT0: 0, endT: 0, cust: null, results: [], tray: [], raf: 0, lastTick: 0, score: 0, streak: 0, bestStreak: 0 };
+const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+function genCustomer() {
+  const C = cur(), st = C.step;
+  const bill = randInt(Math.ceil(100 / st), Math.floor(4995 / st)) * st;        // 1.00 .. 49.95, integer cents
+  const bigger = C.notes.filter((n) => n > bill).sort((a, b) => a - b);
+  const note = bigger.length > 1 && Math.random() < 0.25 ? bigger[1] : bigger[0];
+  const c = bill % 100, t = bill % 1000, r = Math.random();
+  let extra = 0;
+  if (r < 0.45 && c) extra = c;                                               // customer evens out the cents
+  else if (r < 0.65 && t && t !== c && t < 500) extra = t;                    // customer evens out to a ten
+  return { bill, note, extra, tender: note + extra, change: note + extra - bill };
+}
+const fmtMs = (ms) => { ms = Math.max(0, Math.round(ms)); return Math.floor(ms / 1000) + '.' + String(ms % 1000).padStart(3, '0'); };
+function renderPad() {
+  $('pad').innerHTML = denoms().map((d) => moneyHTML(d, 1, 'button')).join('');
+}
+function renderDrillIdle() {
+  document.querySelectorAll('#modeToggle button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.mode === drill.mode)));
+  const best = store.get('best', {})[drill.mode + '.' + state.cur];
+  $('idleText').innerHTML = drill.mode === 'shift'
+    ? `Serve <b>${SHIFT_CUSTOMERS} customers</b> as fast as you can. Give the exact change with the <b>fewest notes &amp; coins</b>.`
+    : `<b>60 seconds</b> on the clock. Serve as many customers as you can — exact change, fewest pieces.`;
+  $('bestText').textContent = best
+    ? `Personal best (${state.cur}): ${best.score} pts` + (drill.mode === 'shift' ? ` in ${fmtMs(best.ms)}s` : ` · ${best.served} served`)
+    : `No personal best yet for ${state.cur}.`;
+  $('startBtn').textContent = drill.mode === 'shift' ? '▶ Start shift' : '▶ Start rush';
+  if (!drill.running) {
+    $('hudTimeLabel').textContent = drill.mode === 'rush' ? 'TIME LEFT' : 'TIME';
+    $('hudTime').textContent = drill.mode === 'rush' ? fmtMs(RUSH_MS) : fmtMs(0);
+    $('hudTimeBox').classList.remove('warn');
+  }
+}
+function showDrillPanel(which) {
+  $('drillIdle').hidden = which !== 'idle'; $('drillPlay').hidden = which !== 'play'; $('drillDone').hidden = which !== 'done';
+}
+function updateHud() {
+  $('hudCust').textContent = drill.mode === 'shift'
+    ? `${Math.min(drill.results.length + 1, SHIFT_CUSTOMERS)}/${SHIFT_CUSTOMERS}` : String(drill.results.length + 1);
+  $('hudScore').textContent = String(drill.score);
+  $('hudStreak').textContent = String(drill.streak);
+}
+function startDrill() {
+  Sfx.init();
+  drill.running = true; drill.results = []; drill.score = 0; drill.streak = 0; drill.bestStreak = 0; drill.lastTick = 0; drill.endT = 0;
+  drill.t0 = performance.now();
+  $('feedback').textContent = ''; $('feedback').className = 'feedback';
+  showDrillPanel('play'); writeURL();
+  nextCustomer(); Sfx.good();
+  cancelAnimationFrame(drill.raf); drill.raf = requestAnimationFrame(drillLoop);
+  $('submitBtn').focus({ preventScroll: true });
+}
+function nextCustomer() {
+  drill.cust = genCustomer(); drill.tray = []; drill.custT0 = performance.now();
+  const c = drill.cust;
+  const say = c.extra
+    ? `Hands you a ${fmtShort(c.note)} note… then finds <b>${fmt(c.extra)}</b> in coins.`
+    : `Hands you a ${fmtShort(c.note)} note.`;
+  $('ticket').innerHTML = `<div class="tl"><span>BILL</span><b>${fmt(c.bill)}</b></div>`
+    + `<div class="tl"><span>CASH</span><span>${fmt(c.note)}${c.extra ? ' + ' + fmt(c.extra) : ''}</span></div>`
+    + `<div class="tl big"><span>TENDERED</span><span>${fmt(c.tender)}</span></div>`
+    + `<div class="say">🧍 ${say}</div>`;
+  renderTray(); updateHud();
+}
+function renderTray() {
+  const counts = new Map();
+  for (const d of drill.tray) counts.set(d, (counts.get(d) || 0) + 1);
+  const ds = [...counts.keys()].sort((a, b) => b - a);
+  $('tray').innerHTML = ds.map((d) => moneyHTML(d, counts.get(d))).join('');
+  const total = drill.tray.reduce((a, b) => a + b, 0);
+  $('trayTotal').textContent = fmt(total);
+  $('trayCount').textContent = pieces(drill.tray.length);
+}
+function addToTray(d) {
+  if (!drill.running) return;
+  if (drill.tray.length >= 40) { toast('Tray is full'); return; }
+  drill.tray.push(d); renderTray();
+  d >= 500 ? Sfx.paper() : Sfx.coin();
+}
+function submitChange() {
+  if (!drill.running || !drill.cust) return;
+  const now = performance.now();
+  if (drill.mode === 'rush' && now - drill.t0 >= RUSH_MS) { drill.endT = drill.t0 + RUSH_MS; endDrill(); return; }
+  const c = drill.cust, total = drill.tray.reduce((a, b) => a + b, 0), g = greedy(c.change, denoms());
+  const ms = Math.round(now - drill.custT0);
+  let verdict;
+  if (total !== c.change) verdict = 'miss';
+  else if (drill.tray.length > g.count) verdict = 'over';
+  else verdict = ms < SNAP_MS ? 'snap' : 'ok';
+  drill.results.push({ ...c, given: total, pieces: drill.tray.length, min: g.count, ms, verdict });
+  drill.score += POINTS[verdict];
+  drill.streak = (verdict === 'snap' || verdict === 'ok') ? drill.streak + 1 : 0;
+  drill.bestStreak = Math.max(drill.bestStreak, drill.streak);
+  const fb = $('feedback');
+  if (verdict === 'snap') { fb.className = 'feedback good'; fb.textContent = `⚡ SNAP! ${fmt(c.change)} in ${fmtMs(ms)}s`; Sfx.snap(); }
+  else if (verdict === 'ok') { fb.className = 'feedback good'; fb.textContent = `✅ Exact — ${fmtMs(ms)}s. Under 3 s for a snap!`; Sfx.good(); }
+  else if (verdict === 'over') { fb.className = 'feedback meh'; fb.textContent = `🟨 Right amount, ${drill.tray.length} pieces. Minimum is ${g.count}: ${partsText(g)}`; Sfx.meh(); }
+  else {
+    fb.className = 'feedback bad'; fb.textContent = `❌ Gave ${fmt(total)} — change was ${fmt(c.change)}: ${partsText(g)}`; Sfx.bad();
+    const t = $('tray'); t.classList.remove('shake'); void t.offsetWidth; t.classList.add('shake');
+  }
+  if (drill.mode === 'shift' && drill.results.length >= SHIFT_CUSTOMERS) { drill.endT = now; endDrill(); return; }
+  nextCustomer();
+}
+function drillLoop(now) {
+  if (!drill.running) return;
+  const el = now - drill.t0;
+  if (drill.mode === 'rush') {
+    const left = RUSH_MS - el;
+    $('hudTime').textContent = fmtMs(left);
+    const sec = Math.ceil(left / 1000);
+    $('hudTimeBox').classList.toggle('warn', sec <= 10);
+    if (sec <= 5 && sec > 0 && sec !== drill.lastTick) { drill.lastTick = sec; Sfx.tick(); }
+    if (left <= 0) { drill.endT = drill.t0 + RUSH_MS; endDrill(); return; }
+  } else {
+    $('hudTime').textContent = fmtMs(el);
+  }
+  drill.raf = requestAnimationFrame(drillLoop);
+}
+function endDrill(aborted) {
+  cancelAnimationFrame(drill.raf);
+  if (!drill.running) return;
+  drill.running = false;
+  if (aborted) { showDrillPanel('idle'); renderDrillIdle(); updateHud(); return; }
+  const r = drill.results, totalMs = Math.round((drill.endT || performance.now()) - drill.t0);
+  $('hudTime').textContent = drill.mode === 'rush' ? fmtMs(0) : fmtMs(totalMs);
+  const exact = r.filter((x) => x.verdict === 'snap' || x.verdict === 'ok').length;
+  const snaps = r.filter((x) => x.verdict === 'snap').length;
+  const avg = r.length ? Math.round(r.reduce((a, x) => a + x.ms, 0) / r.length) : 0;
+  const key = drill.mode + '.' + state.cur, bests = store.get('best', {}), prev = bests[key];
+  const better = !prev || drill.score > prev.score || (drill.score === prev.score && drill.mode === 'shift' && totalMs < prev.ms);
+  if (better && r.length) { bests[key] = { score: drill.score, ms: totalMs, served: r.length }; store.set('best', bests); }
+  $('doneTitle').textContent = drill.mode === 'shift' ? '🧾 Shift complete' : '🔥 Rush over';
+  $('resEmoji').textContent = r.map((x) => EMOJI[x.verdict]).join('') || '—';
+  $('resStats').innerHTML = [
+    [drill.mode === 'shift' ? 'Total time' : 'Served', drill.mode === 'shift' ? fmtMs(totalMs) + 's' : String(r.length)],
+    ['Exact', `${exact}/${r.length}`], ['Score', `${drill.score}${better && r.length ? ' 🏆' : ''}`], ['Avg / customer', fmtMs(avg) + 's'],
+  ].map(([k, v]) => `<div><small>${k}</small><b>${v}</b></div>`).join('');
+  $('resTable').innerHTML = '<thead><tr><th>#</th><th>Bill</th><th>Tendered</th><th>Change</th><th>You gave</th><th>Pieces</th><th>Time</th><th></th></tr></thead><tbody>'
+    + r.map((x, i) => `<tr><td>${i + 1}</td><td>${fmt(x.bill)}</td><td>${fmt(x.tender)}</td><td>${fmt(x.change)}</td><td>${fmt(x.given)}</td><td>${x.pieces}/${x.min}</td><td>${fmtMs(x.ms)}s</td><td>${EMOJI[x.verdict]}</td></tr>`).join('')
+    + '</tbody>';
+  const rows = []; const em = r.map((x) => EMOJI[x.verdict]);
+  for (let i = 0; i < em.length; i += 10) rows.push(em.slice(i, i + 10).join(''));
+  const url = location.origin + location.pathname + `?view=drill&mode=${drill.mode}&currency=${state.cur}`;
+  $('scorecard').textContent = [
+    `SNAPCHANGE ⚡ ${drill.mode === 'shift' ? 'Daily Shift' : '60s Rush'} (${state.cur})`,
+    ...(rows.length ? rows : ['(no customers served)']),
+    drill.mode === 'shift'
+      ? `⏱ ${fmtMs(totalMs)}s · 🎯 ${exact}/${r.length} exact · ⚡ ${snaps} snaps`
+      : `⏱ 60s · 🧍 ${r.length} served · 🎯 ${exact} exact · ⚡ ${snaps} snaps`,
+    `🏆 ${drill.score} pts · 🔥 best streak ${drill.bestStreak}`,
+    url,
+  ].join('\n');
+  showDrillPanel('done'); updateHud();
+  $('hudCust').textContent = drill.mode === 'shift' ? `${r.length}/${SHIFT_CUSTOMERS}` : String(r.length);
+  Sfx.fanfare();
+}
+
+/* =====================================================================
+ * 9. TABS + WIRING
+ * ===================================================================== */
+function setView(v, focus) {
+  if (!VIEWS.includes(v)) return;
+  state.view = v;
+  for (const id of VIEWS) {
+    const tab = $('tab-' + id), on = id === v;
+    tab.setAttribute('aria-selected', String(on)); tab.tabIndex = on ? 0 : -1;
+    $('view-' + id).hidden = !on;
+  }
+  if (focus) $('tab-' + v).focus();
+  if (v !== 'drill' && drill.running) endDrill(true);
+  writeURL();
+}
+
+function wire() {
+  // currency
+  $('curToggle').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    const sym = b.dataset.sym;
+    if (cur().sym === sym) return;
+    const remembered = store.get('dollarCode', 'AUD');
+    setCurrency(sym === '$' ? (CURRENCIES[remembered] ? remembered : 'AUD') : SYM_DEFAULT[sym]);
+  });
+  $('inCode').addEventListener('change', (e) => { const c = e.target.value; if (CURRENCIES[c].sym === '$') store.set('dollarCode', c); setCurrency(c); });
+  // mute
+  const syncMute = () => { $('muteBtn').textContent = state.muted ? '🔇' : '🔊'; $('muteBtn').setAttribute('aria-pressed', String(state.muted)); };
+  $('muteBtn').addEventListener('click', () => { state.muted = !state.muted; store.set('muted', state.muted); syncMute(); Sfx.tap(); });
+  syncMute();
+  // scenario inputs
+  const fromInputs = () => setScenario(parseCents($('inBill').value), parseInt($('inNote').value, 10), parseCents($('inExtra').value || '0'), true);
+  let inputTimer = 0;
+  for (const id of ['inBill', 'inExtra']) {
+    $(id).addEventListener('input', () => { clearTimeout(inputTimer); inputTimer = setTimeout(fromInputs, 250); });
+    $(id).addEventListener('change', () => { clearTimeout(inputTimer); fromInputs(); });
+    $(id).addEventListener('blur', () => { if (!$(id).getAttribute('aria-invalid') || $(id).getAttribute('aria-invalid') === 'false') renderScenario(); });
+    $(id).addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); $(id).blur(); } });
+  }
+  $('inNote').addEventListener('change', fromInputs);
+  $('shareBtn').addEventListener('click', async () => { const ok = await copyText(shareURL()); toast(ok ? '🔗 Share link copied' : shareURL()); Sfx.tap(); });
+  $('randomBtn').addEventListener('click', () => {
+    let c; do { c = genCustomer(); } while (!(c.bill % 100));
+    setScenario(c.bill, c.note, c.bill % 100, false);
+  });
+  $('resetScenarioBtn').addEventListener('click', () => setScenario(DEFAULTS.bill, DEFAULTS.note, DEFAULTS.extra, false));
+  // tabs
+  const tabs = $('tab-line').parentElement;
+  tabs.addEventListener('click', (e) => { const t = e.target.closest('[role=tab]'); if (t) { setView(t.id.slice(4)); Sfx.tap(); } });
+  tabs.addEventListener('keydown', (e) => {
+    const i = VIEWS.indexOf(state.view);
+    if (e.key === 'ArrowRight') { e.preventDefault(); setView(VIEWS[(i + 1) % 3], true); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); setView(VIEWS[(i + 2) % 3], true); }
+    if (e.key === 'Home') { e.preventDefault(); setView(VIEWS[0], true); }
+    if (e.key === 'End') { e.preventDefault(); setView(VIEWS[2], true); }
+  });
+  // view 1
+  $('shiftRange').addEventListener('input', (e) => { stopShiftAnim(); setShift(parseInt(e.target.value, 10) || 0); });
+  $('autoSlideBtn').addEventListener('click', () => { Sfx.glide(); animateShift(derived().friendly); });
+  $('zapBtn').addEventListener('click', () => { Sfx.zap(); animateShift(derived().friendly, 700); });
+  $('slideResetBtn').addEventListener('click', () => { Sfx.tap(); animateShift(0, 600); });
+  // view 2
+  $('fuseBtn').addEventListener('click', () => { Sfx.init(); fusionPlay(); });
+  $('fuseStepBtn').addEventListener('click', () => { Sfx.init(); clearTimeout(fusion.timer); fusionStep(); });
+  $('fuseResetBtn').addEventListener('click', () => { Sfx.tap(); renderFusion(); });
+  // view 3
+  $('modeToggle').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b || drill.running) return;
+    drill.mode = b.dataset.mode; renderDrillIdle(); showDrillPanel('idle'); writeURL(); Sfx.tap();
+  });
+  $('startBtn').addEventListener('click', startDrill);
+  $('againBtn').addEventListener('click', startDrill);
+  $('quitBtn').addEventListener('click', () => { endDrill(true); Sfx.tap(); });
+  $('pad').addEventListener('click', (e) => { const b = e.target.closest('button[data-d]'); if (b) addToTray(parseInt(b.dataset.d, 10)); });
+  $('undoBtn').addEventListener('click', () => { if (drill.tray.pop() !== undefined) { renderTray(); Sfx.tap(); } });
+  $('clearBtn').addEventListener('click', () => { drill.tray = []; renderTray(); Sfx.tap(); });
+  $('submitBtn').addEventListener('click', submitChange);
+  $('copyScoreBtn').addEventListener('click', async () => {
+    const ok = await copyText($('scorecard').textContent);
+    toast(ok ? '📋 Scorecard copied — paste it anywhere!' : 'Copy failed — select the text above');
+    if (ok) Sfx.coin();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (!drill.running || state.view !== 'drill') return;
+    if (e.target.matches('input, select, textarea')) return;
+    if (e.key === 'Enter') { e.preventDefault(); submitChange(); }
+    else if (e.key === 'Backspace') { e.preventDefault(); if (drill.tray.pop() !== undefined) renderTray(); }
+    else if (e.key === 'Escape') { drill.tray = []; renderTray(); }
+  });
+  // install prompt
+  let deferred = null;
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; $('installBtn').hidden = false; });
+  $('installBtn').addEventListener('click', async () => { if (!deferred) return; deferred.prompt(); try { await deferred.userChoice; } catch (_) {} deferred = null; $('installBtn').hidden = true; });
+  window.addEventListener('appinstalled', () => { $('installBtn').hidden = true; toast('Installed — SnapChange now works offline'); });
+  // keep the diagrams at true pixel scale across rotations / resizes
+  let resizeTimer = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => { if (vizWidth() !== NL.W) { renderLineStatic(); setShift(state.shift, true); } }, 120);
+  });
+}
+
+/* =====================================================================
+ * 10. BOOT
+ * ===================================================================== */
+state.muted = !!store.get('muted', false);
+const savedCur = store.get('cur', null);
+if (savedCur && CURRENCIES[savedCur]) state.cur = savedCur;
+readURL();
+wire();
+renderAll();
+setView(state.view);
+
+// Expose the pure engine for console tinkering / automated tests.
+window.SnapChange = Object.freeze({ parseCents, fmt, greedy, cashRound, friendlyShift, CURRENCIES, state });
+
+// Offline-first service worker
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js', { scope: './' }).catch((err) => console.warn('SW registration failed', err));
+  });
+}
+})();
+</script>
+</body>
+</html>
