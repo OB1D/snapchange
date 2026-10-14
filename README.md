@@ -54,8 +54,8 @@ Every amount is stored and calculated as an **integer number of cents/pence**. F
 
 - `parseCents()` parses user input with **string arithmetic only**: `"11.7"` → `11 * 100 + 70`. The number is never written as `11.7`.
 - `fmt()` formats with `Math.floor(c / 100)` and `c % 100`.
-- `greedy()` breaks change into the minimum number of pieces with integer division. Every supported denomination set is canonical, so greedy is optimal.
-- For 5c-minimum currencies, cash rounding follows the standard rule: 1–2c round down and 3–4c round up.
+- `greedy()` breaks change into the minimum number of pieces with integer division. Every supported denomination set is canonical, so greedy is optimal. The test suite checks this by brute force against a dynamic-programming minimum, for every payable amount up to $200 in all five currencies.
+- For 5c-minimum currencies (AUD and CAD), cash rounding goes to the nearest 5c: endings of 1–2c and 6–7c round down, and 3–4c and 8–9c round up.
 
 No IEEE 754 drift is possible, because no fractional currency value ever exists. The pure engine is exposed as `window.SnapChange` for console tinkering and tests.
 
@@ -68,9 +68,12 @@ The header has four instant presets. CAD is available from the **Currency** drop
 | `US$` | USD | $50 $20 $10 $5 **$1** bills | 25c 10c 5c 1c | none (1c exists) |
 | `£` | GBP | £50 £20 £10 £5 | £2 £1 50p 20p 10p 5p 2p 1p | none |
 | `€` | EUR | €50 €20 €10 €5 | €2 €1 50c 20c 10c 5c 2c 1c | none |
-| — | CAD (dropdown) | $50 $20 $10 $5 | $2 $1 50c 20c 10c 5c | to 5c |
+| — | CAD (dropdown) | $50 $20 $10 $5 | $2 **toonie**, $1 **loonie**, 25c 10c 5c | to 5c (no penny since 2013) |
 
-Whether a denomination is paper or metal is set per currency. For example, `$1` is a **bill** in USD but a **coin** in AUD, and the tray, drawer pad, sounds and wording ("1× $10 bill" vs "1× $10 note") follow that. All five sets are canonical, so the greedy breakdown is always the true minimum. For example, US $8.30 is `$5 + 3×$1 + 25c + 5c`.
+Whether a denomination is paper or metal is set per currency. For example, `$1` is a **bill** in USD but a **coin** in AUD and CAD, and the tray, drawer pad, sounds and wording ("1× $10 bill" vs "1× $10 note") follow that. Canadian coins use their nicknames in tooltips, screen-reader labels and breakdowns. All five sets are canonical, so the greedy breakdown is always the true minimum. For example:
+
+- US $8.30 is `$5 bill + 3×$1 bill + 25c + 5c`.
+- CA $8.30 is `$5 note + $2 toonie + $1 loonie + 25c + 5c`.
 
 If you switch currency while the tendered note doesn't exist in the new one (such as a US $1 bill going to AUD), the app picks the smallest real note that still covers the sale.
 
@@ -141,7 +144,7 @@ Opening `index.html` from disk also works. Only the offline cache is skipped in 
 4. **Forking?** All paths are relative (`./sw.js`, `./manifest.json`), so the app works at any sub-path with no config changes.
 
 ### Shipping updates
-Browsers serve the cached shell first and refresh it in the background. When you change `index.html` or the icons, **bump `CACHE_VERSION` in `sw.js`** (currently `snapchange-v2.1.0`; next would be `snapchange-v2.1.1`). The new worker then installs, removes the old cache and takes over on the next visit.
+Browsers serve the cached shell first and refresh it in the background. When you change `index.html` or the icons, **bump `CACHE_VERSION` in `sw.js`** (currently `snapchange-v2.2.0`; next would be `snapchange-v2.2.1`). The new worker then installs, removes the old cache and takes over on the next visit.
 
 ### Why it scales
 The app is a static file on GitHub's CDN. It has no server, database or API calls, and is roughly 80 KB. After the first visit, every load comes from the service-worker cache, so millions of users cost the same as one.

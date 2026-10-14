@@ -525,7 +525,8 @@ footer a{color:var(--emerald-ink)}
 const CURRENCIES = {
   AUD: { code: 'AUD', sym: '$', minor: 'c', name: 'Australian dollar', noteWord: 'note', notes: [5000, 2000, 1000, 500],      coins: [200, 100, 50, 20, 10, 5], step: 5 },
   USD: { code: 'USD', sym: '$', minor: 'c', name: 'US dollar',         noteWord: 'bill', notes: [5000, 2000, 1000, 500, 100], coins: [25, 10, 5, 1],            step: 1 },
-  CAD: { code: 'CAD', sym: '$', minor: 'c', name: 'Canadian dollar',   noteWord: 'note', notes: [5000, 2000, 1000, 500],      coins: [200, 100, 50, 20, 10, 5], step: 5 },
+  CAD: { code: 'CAD', sym: '$', minor: 'c', name: 'Canadian dollar',   noteWord: 'note', notes: [5000, 2000, 1000, 500],      coins: [200, 100, 25, 10, 5],     step: 5,
+         nick: { 200: 'toonie', 100: 'loonie' } },                                                       // no penny since 2013 -> 5c rounding
   GBP: { code: 'GBP', sym: '£', minor: 'p', name: 'Pound sterling',    noteWord: 'note', notes: [5000, 2000, 1000, 500],      coins: [200, 100, 50, 20, 10, 5, 2, 1], step: 1 },
   EUR: { code: 'EUR', sym: '€', minor: 'c', name: 'Euro',              noteWord: 'note', notes: [5000, 2000, 1000, 500],      coins: [200, 100, 50, 20, 10, 5, 2, 1], step: 1 },
 };
@@ -584,6 +585,10 @@ function greedy(amount, denoms) {
 const denoms = (code) => { const C = CURRENCIES[code || state.cur]; return C.notes.concat(C.coins); };
 /** A $1 is a bill in USD but a coin in AUD, so paper vs metal is decided per currency, never by size. */
 const isNote = (d) => cur().notes.includes(d) || d > cur().notes[0];
+/** Coin nickname where one exists (CAD $2 "toonie", $1 "loonie"), else ''. */
+const nick = (d) => (cur().nick && cur().nick[d]) || '';
+/** "$2 toonie", "$10 bill", "25c" */
+const denomName = (d) => denomLabel(d) + (isNote(d) ? ' ' + cur().noteWord : (nick(d) ? ' ' + nick(d) : ''));
 /** Amount to slide both markers left so the bill lands on a friendly ten (or a whole dollar if under $10). */
 function friendlyShift(bill) { return bill >= 1000 ? bill % 1000 : bill % 100; }
 
@@ -721,12 +726,12 @@ function denomColor(d) {
 function moneyHTML(d, n, tag) {
   const kind = isNote(d) ? 'note' : 'coin';
   const el = tag || 'span';
-  const attrs = el === 'button' ? ` type="button" data-d="${d}" aria-label="Add ${denomLabel(d)}"` : '';
+  const attrs = el === 'button' ? ` type="button" data-d="${d}" aria-label="Add ${denomName(d)}"` : '';
   const qty = n > 1 ? `<span class="qty">×${n}</span>` : '';
-  return `<${el} class="money ${kind}" style="--c:${denomColor(d)}"${attrs}>${denomLabel(d)}${qty}</${el}>`;
+  return `<${el} class="money ${kind}" style="--c:${denomColor(d)}" title="${denomName(d)}"${attrs}>${denomLabel(d)}${qty}</${el}>`;
 }
 const partsHTML = (g) => g.parts.map((p) => moneyHTML(p.d, p.n)).join('');
-const partsText = (g) => g.parts.map((p) => `${p.n}× ${denomLabel(p.d)}${isNote(p.d) ? ' ' + cur().noteWord : ''}`).join(' + ') || 'nothing';
+const partsText = (g) => g.parts.map((p) => `${p.n}× ${denomName(p.d)}`).join(' + ') || 'nothing';
 const pieces = (n) => n + (n === 1 ? ' piece' : ' pieces');
 
 /* =====================================================================
@@ -780,6 +785,7 @@ function renderAll() {
 function setCurrency(code) {
   if (!CURRENCIES[code] || code === state.cur) return;
   if (drill.running) endDrill(true);
+  showDrillPanel('idle'); // results/scorecard belong to the previous currency
   state.cur = code;
   store.set('cur', code);
   const step = cur().step;
