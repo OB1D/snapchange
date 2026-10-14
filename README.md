@@ -168,7 +168,7 @@ Opening `index.html` from disk also works. Only the offline cache is skipped in 
 4. **Forking?** All paths are relative (`./sw.js`, `./manifest.json`), so the app works at any sub-path with no config changes.
 
 ### Shipping updates
-Browsers serve the cached shell first and refresh it in the background. When you change `index.html` or the icons, **bump `CACHE_VERSION` in `sw.js`** (currently `snapchange-v2.5.0`; next would be `snapchange-v2.5.1`). The new worker then installs, removes the old cache and takes over on the next visit.
+Browsers serve the cached shell first and refresh it in the background. When you change `index.html` or the icons, **bump `CACHE_VERSION` in `sw.js`** (currently `snapchange-v2.6.0`; next would be `snapchange-v2.6.1`). The new worker then installs, removes the old cache and takes over on the next visit.
 
 ### Why it scales
 The app is a static file on GitHub's CDN and is roughly 100 KB. It needs no server, database or API. On its own it makes no network calls. The exceptions are the optional visitor-counter ping, which is off until you set a URL, and the feedback form, which only sends when someone presses **Send**. After the first visit, every load comes from the service-worker cache, so millions of users cost the same as one.
@@ -271,15 +271,27 @@ A run goes through these steps:
 
 If anything fails, the commits stay on local `main` for you to review. The next run refuses to start until you've dealt with them. Reports are saved to `triage/report-<time>.md`.
 
-**Tests.** `node tests/e2e.mjs` covers the visitor counter, the 5-customer shift and its support card, and the feedback dialog. In that dialog it checks validation, the locked fields, the in-app confirmation, the failure path and the fit at 320 px. It also covers the `/feedback` hardening and the `triage.py` fetch/ack round trip. Every FormSubmit request is intercepted, so tests never send email.
+**Tests.** `node tests/e2e.mjs` covers the visitor counter, the 5-customer shift and its support card, the Support modal (exact wording, links, copy-to-clipboard, the QR toggles and fit at 320 px) and the feedback dialog. In that dialog it checks validation, the locked fields, the in-app confirmation, the failure path and the fit at 320 px. It also covers the `/feedback` hardening and the `triage.py` fetch/ack round trip. Every FormSubmit request is intercepted, so tests never send email.
 
 ---
 
 ## Support & contributing
 
-SnapChange is free, ad-free and open source, and it works offline. It is built and maintained by one person. If it helps you or your team give change faster, here's how to help:
+SnapChange is 100% free, offline-ready, and ad-free. If this tool helped you, your classroom, or your team master cash change, consider supporting its development:
 
-- **☕ Tip on Ko-fi:** [ko-fi.com/ob1d](https://ko-fi.com/ob1d). Every coffee goes into more drills, currencies and polish.
+- **💳 Card or PayPal:** [ko-fi.com/ob1d](https://ko-fi.com/ob1d)
+- **💚 GitHub Sponsors:** [github.com/sponsors/OB1D](https://github.com/sponsors/OB1D)
+- **SnapChange Contribution (crypto):**
+
+  | Asset | Networks | Address |
+  |---|---|---|
+  | ETH / USDC / USDT | Ethereum, Base, Polygon | `0xe606c09Ee4a72f1Ed95C45F3f5d735E3fDed9c0E` |
+  | Bitcoin (BTC) | Bitcoin | `bc1q6csjx26pyp4u56k4r8ywx0wh9ajes62ax46n5m` |
+
+  Send only the listed assets on the listed networks. Crypto transfers can't be reversed.
+
+You can help in other ways too:
+
 - **⭐ Star the repo.** It helps other cashiers, trainers and teachers find it.
 - **🐞 Report a bug or suggest an idea** in [Issues](https://github.com/OB1D/snapchange/issues). Wrong change, a confusing screen and a missing currency are all worth a report.
 - **🛠 Send a pull request.** Keep to the house rules:
@@ -288,7 +300,22 @@ SnapChange is free, ad-free and open source, and it works offline. It is built a
   - Mobile-first, with 44 px touch targets.
   - Bump `CACHE_VERSION` in `sw.js` when the shell changes.
 
-The **Sponsor** button at the top of the repo comes from `.github/FUNDING.yml`. The app itself asks only once, quietly, after you finish a 5-customer shift, and keeps a single line in the footer.
+### In the app
+
+**☕ Support**, in the footer and on the Speed Drill completion card, opens the **Support** modal. The modal has the Ko-fi and GitHub Sponsors buttons, plus the **SnapChange Contribution** section, where each wallet has:
+- a 1-click **📋 Copy** button that confirms with **✅ Copied!**
+- a **▦ Show QR** toggle
+
+The completion card only appears after a finished drill: a full 5-customer shift, or a 60-second rush that served at least one customer. It never appears when you quit early.
+
+The wallet QR codes, like the share QR, are static inline SVG with no runtime library and no network request. Each one is version 3-M, 29×29 modules plus a 4-module quiet zone, and encodes the plain address so a wallet can pick the network.
+
+**If an address ever changes,** do all of the following:
+1. Check its checksum (EIP-55 for ETH, bech32 for BTC).
+2. Regenerate the `<path d>` inside `#ethQr` / `#btcQr`, one `h`-run per row of dark modules, offset by 4.
+3. Decode the result with an independent reader before shipping. A QR code for the wrong address loses money for good.
+
+The **Sponsor** button at the top of the repo comes from `.github/FUNDING.yml` (`github: [OB1D]`, `ko_fi: ob1d`).
 
 ---
 

@@ -140,9 +140,54 @@ try {
   const emoji = await ev('document.getElementById("resEmoji").textContent');
   check('S3 engine-driven answers all exact', [...emoji.matchAll(/⚡|✅/gu)].length === 5, emoji);
   check('S4 support card shown after a completed shift', !(await hidden('shiftSupport')));
+  await ev('document.getElementById("drillSupportBtn").click()');
+  check('S5 completion card ☕ Support opens the Support modal', await ev('document.getElementById("supportDialog").open'));
+  await ev('document.getElementById("supportCloseBtn").click()');
   await ev('document.getElementById("againBtn").click()'); await sleep(150);
   await ev('document.getElementById("quitBtn").click()'); await sleep(150);
-  check('S5 quitting early never shows the card', await hidden('drillDone'));
+  check('S6 quitting early never shows the card', await hidden('drillDone'));
+
+  // ---- P. Support modal ----
+  const ETH = '0xe606c09Ee4a72f1Ed95C45F3f5d735E3fDed9c0E', BTC = 'bc1q6csjx26pyp4u56k4r8ywx0wh9ajes62ax46n5m';
+  await ev('document.getElementById("supportBtn").click()');
+  check('P1 footer ☕ Support opens the modal', await ev('document.getElementById("supportDialog").open'));
+  check('P2 exact support wording', (await ev('document.getElementById("supportLede").textContent')) ===
+    'SnapChange is 100% free, offline-ready, and ad-free. If this tool helped you, your classroom, or your team master cash change, consider supporting its development:');
+  check('P3 crypto section titled "SnapChange Contribution"', (await ev('document.getElementById("cryptoTitle").textContent')) === 'SnapChange Contribution');
+  check('P4 Card/PayPal and Sponsors links', (await ev(`[...document.querySelectorAll('#supportDialog .sp-pay a')].map(a=>a.href).join(' ')`))
+    === 'https://ko-fi.com/ob1d https://github.com/sponsors/OB1D');
+  await ev(`window.__copied = []; navigator.clipboard.writeText = (t) => { window.__copied.push(t); return Promise.resolve(); }`);
+  for (const [which, addr] of [['ethAddr', ETH], ['btcAddr', BTC]]) {
+    await ev(`document.querySelector('[data-copy="${which}"]').click()`);
+    await sleep(100);
+    const label = await ev(`document.querySelector('[data-copy="${which}"]').textContent`);
+    const copied = await ev('window.__copied[window.__copied.length - 1]');
+    check(`P5 ${which}: Copy puts the exact address on the clipboard and says Copied!`, copied === addr && /Copied!/.test(label), `${copied} | ${label}`);
+  }
+  await sleep(1900);
+  check('P6 Copy button label resets', (await ev(`document.querySelector('[data-copy="ethAddr"]').textContent`)) === '📋 Copy');
+  for (const q of ['ethQr', 'btcQr']) {
+    const btn = `document.querySelector('[data-qr="${q}"]')`;
+    const before = await hidden(q);
+    await ev(`${btn}.click()`);
+    const shown = !(await hidden(q)) && (await ev(`${btn}.getAttribute('aria-expanded')`)) === 'true'
+      && (await ev(`document.querySelector('#${q} svg path').getAttribute('d').length`)) > 500;
+    check(`P7 ${q}: QR hidden by default, toggles on with an inline SVG`, before && shown);
+  }
+  await send('Emulation.setDeviceMetricsOverride', { width: 320, height: 640, deviceScaleFactor: 1, mobile: true });
+  await sleep(200);
+  const spFit = await ev(`(()=>{const d=document.getElementById('supportDialog');return {sw:d.scrollWidth,cw:d.clientWidth,page:document.documentElement.scrollWidth}})()`);
+  check('P8 Support modal with both QRs open fits a 320px phone', spFit.sw <= spFit.cw && spFit.page <= 320, JSON.stringify(spFit));
+  if (KEEP) {
+    await ev(`document.getElementById('ethQr').scrollIntoView({block:'center'})`); await sleep(100);
+    const shot = await send('Page.captureScreenshot', { format: 'png' });
+    writeFileSync(join(TMP, 'support-320.png'), Buffer.from(shot.result.data, 'base64'));
+  }
+  await send('Emulation.clearDeviceMetricsOverride');
+  await ev(`document.querySelector('[data-qr="ethQr"]').click(); document.querySelector('[data-qr="btcQr"]').click()`);
+  check('P9 QR toggles back off', (await hidden('ethQr')) && (await hidden('btcQr')));
+  await ev('document.getElementById("supportCloseBtn").click()');
+  check('P10 Done closes the modal', !(await ev('document.getElementById("supportDialog").open')));
 
   // ---- F. feedback dialog ----
   await nav(SITE_ORIGIN + '/?bill=11.70&note=20&extra=1.70&currency=AUD');
