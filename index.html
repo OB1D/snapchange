@@ -1,0 +1,1355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SnapChange — 3-Second Cash Change Trainer</title>
+<meta name="description" content="Learn to give cash change in 3 seconds. Constant-difference number line, bar-chop diagram, coin-fusion bucket and a timed cashier speed drill. Free, offline, no sign-up.">
+<meta name="theme-color" content="#0b1220">
+<meta name="color-scheme" content="dark light">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SnapChange">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta property="og:title" content="SnapChange — 3-Second Cash Change Trainer">
+<meta property="og:description" content="Bill $11.70, customer hands $21.70? Slide both by $1.70 and the answer snaps to $10. Train your cash change speed.">
+<meta property="og:type" content="website">
+<style>
+:root{
+  --bg:#0b1220; --panel:#111a2e; --panel2:#17223b; --line:#26344f; --text:#e6edf7; --muted:#93a3ba;
+  --emerald:#10b981; --emerald-ink:#34d399; --amber:#f59e0b; --cyan:#06b6d4; --rose:#fb7185; --sky:#60a5fa;
+  --danger:#f43f5e; --ok:#22c55e; --shadow:0 10px 30px rgba(0,0,0,.35); --radius:16px;
+  --zap:rgba(11,18,32,.78);
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f3f6fb; --panel:#ffffff; --panel2:#eef2f8; --line:#d5deea; --text:#0f172a; --muted:#52627a;
+    --emerald-ink:#047857; --rose:#e11d48; --sky:#2563eb; --shadow:0 8px 24px rgba(15,23,42,.08);
+    --zap:rgba(243,246,251,.8);
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+:focus-visible{outline:3px solid var(--cyan);outline-offset:2px;border-radius:6px}
+
+/* Top bar */
+.topbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+  padding-top:env(safe-area-inset-top)}
+.topbar .wrap{display:flex;align-items:center;gap:10px;height:56px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:900;letter-spacing:.06em;font-size:18px;margin-right:auto;white-space:nowrap}
+.brand b{color:var(--emerald)}
+.brand small{font-size:11px;font-weight:700;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 5px;letter-spacing:0}
+.seg{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;border-radius:9px;padding:6px 12px;font-weight:800;min-width:40px;min-height:36px}
+.seg button[aria-checked="true"],.seg button[aria-selected="true"]{background:var(--emerald);color:#04241a}
+.icon-btn{border:1px solid var(--line);background:var(--panel2);border-radius:12px;min-width:44px;min-height:44px;font-size:18px}
+
+/* Cards */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin:16px 0}
+.card h2{font-size:18px;margin:0 0 4px}
+.card h3{font-size:15px;margin:14px 0 6px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.lede{color:var(--muted);margin:0 0 10px;font-size:14px}
+
+/* Scenario */
+.fields{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media (min-width:720px){.fields{grid-template-columns:1.1fr 1fr 1.1fr .9fr}}
+.field{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.money-input{display:flex;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:0 10px;min-height:46px}
+.money-input .sym{font-weight:800;color:var(--muted);margin-right:4px}
+.money-input input{border:0;background:transparent;width:100%;min-width:0;font-size:18px;font-weight:800;padding:8px 0;outline:none}
+.money-input:focus-within{border-color:var(--cyan)}
+.money-input.invalid{border-color:var(--danger)}
+select.pick{appearance:none;-webkit-appearance:none;background:var(--panel2);border:1px solid var(--line);border-radius:12px;min-height:46px;padding:0 12px;font-size:18px;font-weight:800;width:100%;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 18px) 50%,calc(100% - 12px) 50%;background-size:6px 6px;background-repeat:no-repeat}
+.summary{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.pill{display:inline-flex;align-items:baseline;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px}
+.pill b{font-size:16px}
+.pill.em{border-color:var(--emerald);color:var(--emerald-ink)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.btn{border:1px solid var(--line);background:var(--panel2);border-radius:12px;padding:10px 12px;font-size:15px;font-weight:800;min-height:44px}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--emerald);border-color:var(--emerald);color:#04241a}
+.btn.amber{background:var(--amber);border-color:var(--amber);color:#2a1800}
+.btn.cyan{background:var(--cyan);border-color:var(--cyan);color:#012a33}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.msg{font-size:13px;color:var(--muted)}
+.msg.err{color:var(--danger);font-weight:700}
+
+/* Tabs */
+.tabs{position:sticky;top:calc(56px + env(safe-area-inset-top));z-index:15;background:var(--bg);padding:8px 0}
+.tabs .seg{display:flex;width:100%}
+.tabs .seg button{flex:1;padding:10px 6px;font-size:14px}
+.tabs .seg button{font-size:13px}
+@media (min-width:560px){.tabs .seg button{font-size:15px}}
+[role="tabpanel"][hidden]{display:none}
+
+/* SVG visuals */
+.viz{width:100%;height:auto;display:block;touch-action:pan-y}
+.viz text{fill:var(--text);font-family:inherit}
+.viz .muted{fill:var(--muted)}
+.viz .axis{stroke:var(--muted);stroke-width:2}
+.viz .tick{stroke:var(--muted);stroke-width:1.5}
+.viz .ghost{stroke:var(--muted);stroke-dasharray:4 5;stroke-width:2;opacity:.7}
+.viz .beam{fill:var(--emerald)}
+.viz .beam-text{fill:#04241a;font-weight:900;letter-spacing:.04em}
+.viz .bill{fill:var(--rose)} .viz .tender{fill:var(--sky)}
+.viz .seg-base{fill:var(--emerald)} .viz .seg-odd{fill:var(--amber)} .viz .seg-cents{fill:var(--cyan)}
+.viz .seg-label{fill:#0b1220;font-weight:800}
+.viz .zap-veil{fill:var(--zap)}
+.viz .cut{stroke:var(--danger);stroke-width:3;stroke-dasharray:6 4}
+.viz .gap-line{stroke:var(--emerald);stroke-width:2.5}
+.slider-wrap{margin-top:8px}
+.slider-wrap label{display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--emerald);height:36px}
+.equation{font-size:clamp(18px,4.6vw,26px);font-weight:900;text-align:center;margin:8px 0 0;font-variant-numeric:tabular-nums}
+.equation .g{color:var(--emerald-ink)}
+.badge{display:inline-block;font-size:12px;font-weight:900;border-radius:999px;padding:3px 10px;background:var(--emerald);color:#04241a;vertical-align:middle;transition:transform .2s,opacity .2s}
+.badge.off{opacity:0;transform:scale(.6)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* Money chips */
+.money{display:inline-flex;align-items:center;justify-content:center;font-weight:900;color:#111827;border:2px solid rgba(0,0,0,.28);user-select:none;-webkit-user-select:none;white-space:nowrap;font-variant-numeric:tabular-nums}
+.money.note{min-width:64px;height:36px;padding:0 8px;border-radius:6px;background:linear-gradient(135deg,rgba(255,255,255,.35),transparent 40%),var(--c);font-size:15px;box-shadow:inset 0 0 0 3px rgba(255,255,255,.25)}
+.money.coin{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.65),transparent 45%),var(--c);font-size:13px;box-shadow:inset 0 0 0 3px rgba(0,0,0,.12)}
+.money.sm.note{min-width:48px;height:28px;font-size:13px}
+.money.sm.coin{width:36px;height:36px;font-size:11px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-height:46px}
+.mult{font-size:12px;font-weight:900;color:var(--muted);margin-left:-3px}
+
+/* Fusion */
+.pos{background:#04110c;border:2px solid #1f3b31;border-radius:14px;padding:12px 14px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#6ee7b7;box-shadow:inset 0 0 24px rgba(16,185,129,.15)}
+.pos .ln{display:flex;justify-content:space-between;font-size:15px}
+.pos .big{font-size:26px;font-weight:900;color:#a7f3d0}
+.pos .flag{display:inline-block;margin-top:6px;font-size:12px;background:#f59e0b;color:#2a1800;border-radius:6px;padding:2px 8px;font-weight:900;animation:blink 1.4s steps(2,start) infinite}
+@keyframes blink{to{visibility:hidden}}
+.buckets{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px;align-items:stretch}
+@media (min-width:640px){.buckets{grid-template-columns:1fr auto 1fr}}
+.bucket{border:2px dashed var(--line);border-radius:14px;padding:10px;background:var(--panel2)}
+.bucket h4{margin:0 0 6px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:flex;justify-content:space-between}
+.plus{align-self:center;justify-self:center;font-size:28px;font-weight:900;color:var(--muted)}
+.fusion{margin-top:12px;border:2px solid var(--emerald);border-radius:16px;padding:12px;min-height:120px;background:linear-gradient(180deg,color-mix(in srgb,var(--emerald) 10%,transparent),transparent)}
+.fusion h4{margin:0 0 8px;font-size:13px;color:var(--emerald-ink);text-transform:uppercase;letter-spacing:.08em}
+.fuse-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 0;border-top:1px dashed var(--line);opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s}
+.fuse-row:first-of-type{border-top:0}
+.fuse-row.show{opacity:1;transform:none}
+.fuse-row .lab{flex-basis:100%;font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.tok{display:inline-flex;align-items:center;justify-content:center;min-width:56px;height:38px;padding:0 10px;border-radius:999px;font-weight:900;font-variant-numeric:tabular-nums;color:#0b1220}
+.tok.c{background:var(--cyan)} .tok.d{background:var(--amber)} .tok.n{background:var(--emerald)}
+.tok.res{opacity:0;transform:scale(.4)}
+.fuse-row.go .tok.in{animation:fly .55s cubic-bezier(.5,0,.75,0) forwards}
+.fuse-row.done .tok.res{animation:pop .45s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes fly{60%{transform:translate(var(--dx,0),var(--dy,0)) scale(.35);opacity:0}61%{transform:none;opacity:0}to{transform:none;opacity:.3}}
+@keyframes pop{to{opacity:1;transform:scale(1)}}
+.op{font-weight:900;color:var(--muted)}
+.handover .money{animation:drop .5s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes drop{from{transform:translateY(-16px) scale(.6);opacity:0}}
+.compare{font-size:14px;color:var(--muted);margin-top:8px}
+.compare b{color:var(--text)}
+
+/* Drill */
+.hud{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.hud div{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center}
+.hud small{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.hud b{font-size:20px;font-variant-numeric:tabular-nums}
+#modeToggle{flex:1 1 260px}
+#modeToggle button{flex:1;font-size:14px;line-height:1.2}
+#drillTimer{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.ticket{background:var(--panel2);border:1px solid var(--line);border-left:6px solid var(--sky);border-radius:12px;padding:12px}
+.ticket .t1{font-size:14px;color:var(--muted)}
+.ticket .t2{font-size:clamp(20px,5.5vw,28px);font-weight:900;font-variant-numeric:tabular-nums}
+.tray{margin-top:10px;background:var(--panel2);border:2px dashed var(--line);border-radius:12px;padding:8px;min-height:64px}
+.tray-sum{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);font-weight:700;margin-top:4px}
+.keypad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+@media (min-width:640px){.keypad{grid-template-columns:repeat(8,1fr)}}
+.denom{border:1px solid var(--line);background:var(--panel);border-radius:12px;min-height:60px;display:flex;align-items:center;justify-content:center;padding:6px;touch-action:manipulation}
+.denom:active{transform:scale(.95)}
+.feedback{min-height:28px;font-weight:800;margin-top:10px}
+.feedback.good{color:var(--ok)} .feedback.meh{color:var(--amber)} .feedback.bad{color:var(--danger)}
+.results table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.results th,.results td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:right}
+.results th:first-child,.results td:first-child{text-align:left}
+.results .table-wrap{overflow-x:auto}
+.scorecard{white-space:pre-wrap;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:15px;margin:10px 0}
+.flash-good{animation:fg .5s}
+.flash-bad{animation:fb .5s}
+@keyframes fg{30%{box-shadow:0 0 0 4px var(--ok)}}
+@keyframes fb{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+
+footer{color:var(--muted);font-size:13px;text-align:center;padding:24px 16px 40px}
+footer a{color:inherit}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,40px);opacity:0;background:var(--text);color:var(--bg);font-weight:800;padding:10px 16px;border-radius:12px;transition:.25s;pointer-events:none;z-index:50;max-width:calc(100% - 32px);text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand" aria-label="SnapChange V2">
+      <svg width="26" height="26" viewBox="0 0 512 512" aria-hidden="true"><rect x="40" y="130" width="432" height="230" rx="30" fill="#10b981"/><path d="M232 200 l60 -10 l-40 70 h50 l-80 110 l20 -80 h-50 z" fill="#0b1220"/></svg>
+      <span>SNAP<b>CHANGE</b></span><small>V2</small>
+    </div>
+    <div class="seg" role="radiogroup" aria-label="Currency" id="curToggle">
+      <button type="button" role="radio" data-sym="$" aria-checked="true" aria-label="Dollar">$</button>
+      <button type="button" role="radio" data-sym="£" aria-checked="false" aria-label="Pound">£</button>
+      <button type="button" role="radio" data-sym="€" aria-checked="false" aria-label="Euro">€</button>
+    </div>
+    <button type="button" class="icon-btn" id="muteBtn" aria-pressed="false" aria-label="Mute sound effects" title="Sound on/off">🔊</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="card" aria-labelledby="scnTitle">
+    <h2 id="scnTitle">The customer</h2>
+    <p class="lede">Bill comes to <b id="lBill">$11.70</b>. Customer hands over a note, then digs out extra coins so the change comes out round.</p>
+    <div class="fields">
+      <label class="field">Bill
+        <span class="money-input" id="billBox"><span class="sym">$</span><input id="inBill" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="scnMsg"></span>
+      </label>
+      <label class="field">Note tendered
+        <select class="pick" id="inNote"></select>
+      </label>
+      <label class="field">Extra coins
+        <span class="money-input" id="extraBox"><span class="sym">$</span><input id="inExtra" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="scnMsg"></span>
+      </label>
+      <label class="field">Currency
+        <select class="pick" id="inCode">
+          <option value="AUD">AUD $</option><option value="USD">USD $</option><option value="CAD">CAD $</option>
+          <option value="GBP">GBP £</option><option value="EUR">EUR €</option>
+        </select>
+      </label>
+    </div>
+    <div class="summary" aria-live="polite">
+      <span class="pill">Tender <b id="sTender">$21.70</b></span>
+      <span class="pill">POS screen <b id="sPos">$8.30</b></span>
+      <span class="pill em">Change <b id="sChange">$10.00</b></span>
+    </div>
+    <div class="row">
+      <button type="button" class="btn" id="shareBtn">🔗 Copy share link</button>
+      <button type="button" class="btn" id="randomBtn">🎲 New customer</button>
+      <button type="button" class="btn" id="classicBtn">↺ $11.70 classic</button>
+    </div>
+    <p class="msg" id="scnMsg" role="status"></p>
+  </section>
+
+  <nav class="tabs" aria-label="Views">
+    <div class="seg" role="tablist">
+      <button type="button" role="tab" id="tab-line" aria-controls="view-line" aria-selected="true" data-view="line">① <span>Number Line</span></button>
+      <button type="button" role="tab" id="tab-fusion" aria-controls="view-fusion" aria-selected="false" data-view="fusion" tabindex="-1">② <span>Coin Fusion</span></button>
+      <button type="button" role="tab" id="tab-drill" aria-controls="view-drill" aria-selected="false" data-view="drill" tabindex="-1">③ <span>Speed Drill</span></button>
+    </div>
+  </nav>
+
+  <!-- VIEW 1 -->
+  <section id="view-line" role="tabpanel" aria-labelledby="tab-line">
+    <div class="card">
+      <h2>Constant-difference number line</h2>
+      <p class="lede">The emerald <b>change gap</b> is a rigid beam. Slide both markers left together — the gap never changes, but the numbers get friendly.</p>
+      <svg class="viz" id="nlSvg" viewBox="0 0 1000 220" role="img" aria-labelledby="nlDesc">
+        <desc id="nlDesc">Open number line with bill and tender markers joined by the change gap.</desc>
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
+        </defs>
+        <g id="nlStatic"></g>
+        <g id="nlGhosts"></g>
+        <g id="nlBeam"></g>
+        <g id="nlMarkers"></g>
+      </svg>
+      <div class="slider-wrap">
+        <label for="slideRange"><span>Slide to Friendly Ten</span><span id="slideVal">−$0.00</span></label>
+        <input type="range" id="slideRange" min="0" max="170" step="1" value="0">
+      </div>
+      <div class="row">
+        <button type="button" class="btn primary" id="autoSlideBtn">⏪ Auto-Slide (−$1.70)</button>
+        <button type="button" class="btn" id="resetSlideBtn">↺ Reset</button>
+      </div>
+      <p class="equation" id="nlEq" aria-live="polite"></p>
+    </div>
+
+    <div class="card">
+      <h2>Parallel bar-chop</h2>
+      <p class="lede">Tender on top, bill below. Zap the matching overhang off both bars at once — what's left over is the change.</p>
+      <svg class="viz" id="barSvg" viewBox="0 0 1000 200" role="img" aria-labelledby="barDesc">
+        <desc id="barDesc">Two stacked bars for tender and bill, colour coded by base note, odd dollars and cents.</desc>
+        <defs>
+          <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="10" fill="#f43f5e" opacity=".55"/></pattern>
+        </defs>
+        <g id="barStatic"></g>
+        <g id="barDyn"></g>
+      </svg>
+      <div class="legend">
+        <span><i style="background:var(--emerald)"></i>Base note</span>
+        <span><i style="background:var(--amber)"></i>Odd dollars</span>
+        <span><i style="background:var(--cyan)"></i>Cents</span>
+        <span><i style="background:repeating-linear-gradient(45deg,#f43f5e 0 3px,transparent 3px 7px)"></i>Zapped overhang</span>
+      </div>
+      <div class="row">
+        <button type="button" class="btn amber" id="zapBtn">⚡ Zap Overhang</button>
+        <span class="badge off" id="friendlyBadge">🎯 FRIENDLY TEN</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIEW 2 -->
+  <section id="view-fusion" role="tabpanel" aria-labelledby="tab-fusion" hidden>
+    <div class="card">
+      <h2>“Drawer already open” coin-fusion bucket</h2>
+      <p class="lede">You keyed the note, the drawer popped, the screen says one thing — then the customer finds coins. Don't cancel the sale: fuse them.</p>
+      <div class="pos" aria-live="polite">
+        <div class="ln"><span>TOTAL</span><span id="posTotal">$11.70</span></div>
+        <div class="ln"><span>CASH</span><span id="posCash">$20.00</span></div>
+        <div class="ln big"><span>CHANGE</span><span id="posChange">$8.30</span></div>
+        <span class="flag">DRAWER OPEN</span>
+      </div>
+      <div class="buckets">
+        <div class="bucket"><h4><span>POS change</span><span id="bAtot">$8.30</span></h4><div class="chips" id="bucketA"></div></div>
+        <div class="plus" aria-hidden="true">+</div>
+        <div class="bucket"><h4><span>Customer's late coins</span><span id="bBtot">$1.70</span></h4><div class="chips" id="bucketB"></div></div>
+      </div>
+      <div class="fusion" aria-live="polite">
+        <h4>Fusion bucket</h4>
+        <div id="fuseRows"></div>
+      </div>
+      <p class="compare" id="fuseCompare"></p>
+      <div class="row">
+        <button type="button" class="btn primary" id="fusePlay">▶ Fuse it</button>
+        <button type="button" class="btn" id="fuseStep">Step ›</button>
+        <button type="button" class="btn" id="fuseReset">↺ Reset</button>
+      </div>
+      <p class="msg err" id="fuseMsg"></p>
+    </div>
+  </section>
+
+  <!-- VIEW 3 -->
+  <section id="view-drill" role="tabpanel" aria-labelledby="tab-drill" hidden>
+    <div class="card" id="drillCard">
+      <h2>Timed cashier speed drill</h2>
+      <p class="lede">Tap notes and coins to build the change. Exact amount <b>and</b> fewest pieces wins. Under 3 seconds = ⚡ SNAP.</p>
+      <div class="row" id="drillSetup">
+        <div class="seg" role="radiogroup" aria-label="Drill mode" id="modeToggle">
+          <button type="button" role="radio" data-mode="shift" aria-checked="true">🧾 5-Customer Shift</button>
+          <button type="button" role="radio" data-mode="rush" aria-checked="false">⏱️ 60-Second Rush</button>
+        </div>
+        <button type="button" class="btn primary" id="drillStart">▶ Start</button>
+      </div>
+      <div class="hud">
+        <div><small id="timerLabel">Time</small><b id="drillTimer">0.000s</b></div>
+        <div><small>Customer</small><b id="drillCust">–</b></div>
+        <div><small>Score</small><b id="drillScore">0</b></div>
+      </div>
+      <div id="drillPlay" hidden>
+        <div class="ticket" id="ticket">
+          <div class="t1" id="tkLine1"></div>
+          <div class="t2" id="tkLine2"></div>
+        </div>
+        <div class="tray" aria-live="polite">
+          <div class="chips" id="trayChips"></div>
+          <div class="tray-sum"><span id="trayTotal">Tray: $0.00</span><span id="trayCount">0 pieces</span></div>
+        </div>
+        <div class="keypad" id="keypad" aria-label="Notes and coins"></div>
+        <div class="row">
+          <button type="button" class="btn" id="undoBtn">⌫ Undo</button>
+          <button type="button" class="btn" id="clearBtn">✕ Clear</button>
+          <button type="button" class="btn primary" id="submitBtn" style="margin-left:auto">✔ Hand over</button>
+        </div>
+        <p class="feedback" id="feedback" aria-live="assertive"></p>
+      </div>
+      <div id="drillResults" class="results" hidden>
+        <h3>Shift report</h3>
+        <div class="scorecard" id="scorecard"></div>
+        <div class="row">
+          <button type="button" class="btn cyan" id="copyScore">📋 Copy Emoji Scorecard</button>
+          <button type="button" class="btn primary" id="againBtn">▶ Play again</button>
+          <button type="button" class="btn" id="explainBtn">🔍 Explain last customer</button>
+        </div>
+        <div class="table-wrap"><table id="resultTable"></table></div>
+      </div>
+      <p class="msg" id="bestLine"></p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  SnapChange V2 · works offline · all money maths in integer cents ·
+  <a href="https://github.com/ob1d/snapchange">source</a>
+</footer>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* =====================================================================
+ * 1. INTEGER-CENTS ENGINE
+ * Every amount is a safe integer number of minor units (cents / pence).
+ * Floats are never used for money — only for pixel positions.
+ * ===================================================================== */
+const MAX_CENTS = 10000000; // $100,000.00
+const DOLLAR_SET = { notes: [5000, 2000, 1000, 500], coins: [200, 100, 50, 20, 10, 5], step: 5 };
+const CURRENCIES = {
+  AUD: { code: 'AUD', symbol: '$', minor: 'c', name: 'Australian dollar', ...DOLLAR_SET },
+  USD: { code: 'USD', symbol: '$', minor: 'c', name: 'US dollar', ...DOLLAR_SET },
+  CAD: { code: 'CAD', symbol: '$', minor: 'c', name: 'Canadian dollar', ...DOLLAR_SET },
+  GBP: { code: 'GBP', symbol: '£', minor: 'p', name: 'Pound sterling', notes: [5000, 2000, 1000, 500], coins: [200, 100, 50, 20, 10, 5, 2, 1], step: 1 },
+  EUR: { code: 'EUR', symbol: '€', minor: 'c', name: 'Euro', notes: [5000, 2000, 1000, 500], coins: [200, 100, 50, 20, 10, 5, 2, 1], step: 1 },
+};
+const SYMBOL_DEFAULT = { '$': 'AUD', '£': 'GBP', '€': 'EUR' };
+
+const Cents = {
+  /** "11.70" | "$11.7" | "20" | ".5" -> integer cents, or null if invalid. Pure string maths, no floats. */
+  parse(input) {
+    if (input === null || input === undefined) return null;
+    const s = String(input).trim().replace(/^[$£€]\s*/, '').replace(/,/g, '');
+    const m = /^(\d{0,7})(?:\.(\d{0,2}))?$/.exec(s);
+    if (!m || (m[1] === '' && !m[2])) return null;
+    const whole = parseInt(m[1] || '0', 10);
+    const frac = parseInt((m[2] || '').padEnd(2, '0'), 10);
+    const c = whole * 100 + frac;
+    return Number.isSafeInteger(c) ? c : null;
+  },
+  whole(c) { return (c - (c % 100)) / 100; }, // exact integer division for non-negative ints
+  frac(c) { return c % 100; },
+  /** 1170 -> "$11.70" */
+  fmt(c, cur) {
+    const sign = c < 0 ? '−' : '';
+    const a = Math.abs(c);
+    return `${sign}${cur.symbol}${Cents.whole(a)}.${String(Cents.frac(a)).padStart(2, '0')}`;
+  },
+  /** 30 -> "30c", 830 -> "$8.30", 1000 -> "$10" */
+  short(c, cur) {
+    const a = Math.abs(c);
+    if (a > 0 && a < 100) return (c < 0 ? '−' : '') + a + cur.minor;
+    if (a % 100 === 0) return (c < 0 ? '−' : '') + cur.symbol + Cents.whole(a);
+    return Cents.fmt(c, cur);
+  },
+  /** URL form: 1170 -> "11.70", 2000 -> "20" */
+  param(c) {
+    return c % 100 === 0 ? String(Cents.whole(c)) : `${Cents.whole(c)}.${String(Cents.frac(c)).padStart(2, '0')}`;
+  },
+  /** Cash rounding to the smallest coin (AUD/CAD style: 1–2c down, 3–4c up). */
+  cashRound(c, cur) {
+    if (cur.step === 1) return c;
+    const r = c % cur.step;
+    return r * 2 < cur.step ? c - r : c - r + cur.step;
+  },
+  denoms(cur) { return cur.notes.concat(cur.coins); },
+  /** Greedy minimum-piece breakdown (all supported systems are canonical, so greedy is optimal). */
+  greedy(amount, cur) {
+    const parts = [];
+    let rest = amount, count = 0;
+    for (const d of Cents.denoms(cur)) {
+      const n = (rest - (rest % d)) / d;
+      if (n > 0) { parts.push({ d, n }); rest -= n * d; count += n; }
+    }
+    return { parts, count, rest };
+  },
+  /** Shift that lands the bill on a friendly multiple of $10 (or whole dollars if that would hit zero). */
+  friendlyShift(bill) {
+    const r10 = bill % 1000;
+    if (r10 > 0 && bill - r10 > 0) return r10;
+    return bill % 100;
+  },
+};
+
+const isNote = (d, cur) => cur.notes.includes(d);
+const NOTE_COLORS = { 500: '#e879f9', 1000: '#60a5fa', 2000: '#f87171', 5000: '#facc15' };
+function denomColor(d, cur) {
+  if (isNote(d, cur)) return NOTE_COLORS[d] || '#a3e635';
+  if (d >= 100) return '#eab308';
+  if (d <= 2) return '#c2410c';
+  return '#cbd5e1';
+}
+function moneyChip(d, cur, small) {
+  const el = document.createElement('span');
+  el.className = `money ${isNote(d, cur) ? 'note' : 'coin'}${small ? ' sm' : ''}`;
+  el.style.setProperty('--c', denomColor(d, cur));
+  el.textContent = Cents.short(d, cur);
+  return el;
+}
+function renderParts(container, parts, cur, small) {
+  container.textContent = '';
+  for (const { d, n } of parts) {
+    for (let i = 0; i < Math.min(n, 4); i++) container.appendChild(moneyChip(d, cur, small));
+    if (n > 4) {
+      const m = document.createElement('span');
+      m.className = 'mult'; m.textContent = `×${n}`;
+      container.appendChild(m);
+    }
+  }
+}
+
+/* =====================================================================
+ * 2. WEB AUDIO SYNTH (procedural, no audio files)
+ * ===================================================================== */
+const Sfx = {
+  ctx: null, muted: false,
+  ensure() {
+    if (this.muted) return null;
+    if (!this.ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      try { this.ctx = new AC(); } catch (e) { return null; }
+    }
+    if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+    return this.ctx;
+  },
+  tone(freq, dur, { type = 'sine', gain = 0.12, at = 0, to = null } = {}) {
+    const ctx = this.ensure(); if (!ctx) return;
+    const t = ctx.currentTime + at;
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(gain, t + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(ctx.destination);
+    o.start(t); o.stop(t + dur + 0.02);
+  },
+  noise(dur, { gain = 0.08, at = 0, freq = 2500 } = {}) {
+    const ctx = this.ensure(); if (!ctx) return;
+    const t = ctx.currentTime + at;
+    const len = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 0.8;
+    const g = ctx.createGain(); g.gain.value = gain;
+    src.connect(f).connect(g).connect(ctx.destination);
+    src.start(t);
+  },
+  coin() { this.tone(2400, 0.09, { type: 'triangle', gain: 0.09 }); this.tone(3600, 0.12, { type: 'sine', gain: 0.06, at: 0.03 }); },
+  paper() { this.noise(0.12, { gain: 0.12, freq: 1800 }); },
+  tick() { this.tone(1300, 0.03, { type: 'square', gain: 0.025 }); },
+  zap() { this.tone(1400, 0.35, { type: 'sawtooth', gain: 0.06, to: 120 }); this.noise(0.2, { gain: 0.05, freq: 4000 }); },
+  fuse() { this.tone(500, 0.25, { type: 'sine', gain: 0.1, to: 1000 }); this.coin(); },
+  good() { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => this.tone(f, 0.16, { type: 'triangle', gain: 0.1, at: i * 0.06 })); },
+  snap() { this.good(); this.tone(2093, 0.25, { type: 'sine', gain: 0.07, at: 0.26 }); },
+  meh() { this.tone(440, 0.14, { type: 'triangle', gain: 0.1 }); this.tone(415, 0.2, { type: 'triangle', gain: 0.1, at: 0.12 }); },
+  bad() { this.tone(180, 0.3, { type: 'sawtooth', gain: 0.08, to: 90 }); },
+  fanfare() { [392, 523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => this.tone(f, 0.22, { type: 'triangle', gain: 0.09, at: i * 0.09 })); },
+};
+
+/* =====================================================================
+ * 3. APP STATE + URL DEEP-LINKING
+ * ===================================================================== */
+const $ = (s) => document.querySelector(s);
+const VIEWS = ['line', 'fusion', 'drill'];
+const CLASSIC = { bill: 1170, note: 2000, extra: 170 };
+const state = { cur: 'AUD', ...CLASSIC, shift: 0, view: 'line' };
+const cur = () => CURRENCIES[state.cur];
+function derive() {
+  const tender = state.note + state.extra;
+  return { tender, change: tender - state.bill, pos: state.note - state.bill, friendly: Cents.friendlyShift(state.bill) };
+}
+const valid = () => derive().change >= 0;
+
+function readURL() {
+  const p = new URLSearchParams(location.search);
+  const notes = [];
+  const code = (p.get('currency') || '').toUpperCase();
+  if (CURRENCIES[code]) state.cur = code;
+  else if (code) notes.push(`Unknown currency “${code}” — using ${state.cur}.`);
+  const take = (key, min) => {
+    if (!p.has(key)) return;
+    const v = Cents.parse(p.get(key));
+    if (v === null || v < min || v > MAX_CENTS) { notes.push(`Ignored invalid ${key}=${p.get(key)}.`); return; }
+    state[key] = Cents.cashRound(v, cur());
+  };
+  take('bill', 1); take('note', 1); take('extra', 0);
+  const v = p.get('view');
+  if (VIEWS.includes(v)) state.view = v;
+  const m = p.get('mode');
+  if (m === 'shift' || m === 'rush') drill.mode = m;
+  return notes;
+}
+function shareURL() {
+  const p = new URLSearchParams();
+  p.set('bill', Cents.param(state.bill));
+  p.set('note', Cents.param(state.note));
+  p.set('extra', Cents.param(state.extra));
+  p.set('currency', state.cur);
+  if (state.view !== 'line') p.set('view', state.view);
+  if (state.view === 'drill') p.set('mode', drill.mode);
+  return `${location.origin}${location.pathname}?${p.toString()}`;
+}
+function writeURL() {
+  try { history.replaceState(null, '', shareURL()); } catch (e) { /* file:// or sandboxed */ }
+}
+
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); return true; }
+  } catch (e) { /* fall through */ }
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.setAttribute('readonly', '');
+  ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+  document.body.appendChild(ta); ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+  ta.remove();
+  return ok;
+}
+let toastTimer = 0;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), 2200);
+}
+const reducedMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+/* =====================================================================
+ * 4. SCENARIO PANEL
+ * ===================================================================== */
+const ui = {
+  bill: $('#inBill'), note: $('#inNote'), extra: $('#inExtra'), code: $('#inCode'),
+  billBox: $('#billBox'), extraBox: $('#extraBox'), msg: $('#scnMsg'),
+};
+function fillNoteSelect() {
+  const c = cur();
+  const opts = c.notes.slice().reverse();
+  if (!opts.includes(state.note)) opts.push(state.note);
+  ui.note.textContent = '';
+  for (const d of opts) {
+    const o = document.createElement('option');
+    o.value = String(d);
+    o.textContent = Cents.short(d, c) + (c.notes.includes(d) ? ' note' : ' (custom)');
+    ui.note.appendChild(o);
+  }
+  ui.note.value = String(state.note);
+}
+function syncScenarioInputs() {
+  const c = cur();
+  ui.bill.value = Cents.fmt(state.bill, c).slice(c.symbol.length);
+  ui.extra.value = Cents.fmt(state.extra, c).slice(c.symbol.length);
+  ui.code.value = state.cur;
+  document.querySelectorAll('.money-input .sym').forEach((s) => { s.textContent = c.symbol; });
+  document.querySelectorAll('#curToggle button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.sym === c.symbol)));
+  fillNoteSelect();
+}
+function renderSummary() {
+  const c = cur(), d = derive();
+  $('#lBill').textContent = Cents.fmt(state.bill, c);
+  $('#sTender').textContent = Cents.fmt(d.tender, c);
+  $('#sPos').textContent = d.pos >= 0 ? Cents.fmt(d.pos, c) : 'short ' + Cents.fmt(-d.pos, c);
+  $('#sChange').textContent = d.change >= 0 ? Cents.fmt(d.change, c) : '—';
+}
+function setMsg(text, err) {
+  ui.msg.textContent = text || '';
+  ui.msg.classList.toggle('err', !!err);
+}
+function commitScenario(info) {
+  state.shift = 0;
+  NL.cancel();
+  renderSummary();
+  NL.build();
+  Fusion.build();
+  writeURL();
+  const d = derive();
+  if (d.change < 0) setMsg(`Tender ${Cents.fmt(d.tender, cur())} doesn't cover the bill. Add a bigger note or more coins.`, true);
+  else setMsg(info || '');
+}
+function onMoneyInput(key, box, min) {
+  const v = Cents.parse(ui[key].value);
+  if (v === null || v < min || v > MAX_CENTS) { box.classList.add('invalid'); ui[key].setAttribute('aria-invalid', 'true'); setMsg(`Enter ${key} like 11.70`, true); return; }
+  box.classList.remove('invalid'); ui[key].removeAttribute('aria-invalid');
+  const r = Cents.cashRound(v, cur());
+  state[key] = r;
+  commitScenario(r !== v ? `Cash-rounded ${key} to ${Cents.fmt(r, cur())} (smallest ${cur().code} coin is ${cur().step}${cur().minor}).` : '');
+}
+function setCurrency(code) {
+  if (!CURRENCIES[code] || code === state.cur) return;
+  const prev = CURRENCIES[state.cur];
+  state.cur = code;
+  const c = cur();
+  if (c.step !== prev.step) {
+    state.bill = Math.max(c.step, Cents.cashRound(state.bill, c));
+    state.extra = Cents.cashRound(state.extra, c);
+  }
+  Drill.abort();
+  syncScenarioInputs();
+  Drill.buildKeypad();
+  commitScenario(`Switched to ${c.name} (${c.code}).`);
+  Drill.renderBest();
+}
+function genCustomer(c) {
+  const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const units = (lo, hi) => randInt(Math.ceil(lo / c.step), Math.floor(hi / c.step)) * c.step;
+  let bill = units(105, 4795);
+  if (bill % 100 === 0) bill += c.step * randInt(1, 3);
+  const bigger = c.notes.filter((n) => n > bill).sort((a, b) => a - b);
+  const note = bigger.length > 1 && Math.random() < 0.25 ? bigger[1] : bigger[0];
+  const roll = Math.random();
+  let extra = 0;
+  if (roll < 0.5) extra = bill % 100;                                            // round dollars back
+  else if (roll < 0.7 && bill % 1000 < 500 && bill > 1000) extra = bill % 1000;  // round tens back
+  const tender = note + extra;
+  return { bill, note, extra, tender, change: tender - bill };
+}
+
+/* =====================================================================
+ * 5. VIEW 1 — NUMBER LINE + BAR-CHOP (both driven by state.shift)
+ * ===================================================================== */
+const SVGNS = 'http://www.w3.org/2000/svg';
+function fitWidth(el) {
+  const w = Math.round(el.getBoundingClientRect().width);
+  return w > 0 ? Math.max(300, Math.min(1000, w)) : 1000;
+}
+function svg(tag, attrs, text) {
+  const el = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) el.setAttribute(k, attrs[k]);
+  if (text !== undefined) el.textContent = text;
+  return el;
+}
+const NL = {
+  lo: 0, hi: 1, W: 1000, H: 220, pad: 50, axisY: 140, fs: 15, anim: 0, lastDollar: null,
+  x(c) { return this.pad + ((c - this.lo) / (this.hi - this.lo)) * (this.W - 2 * this.pad); },
+  build() {
+    const c = cur(), d = derive();
+    this.lastDollar = null;
+    // Size the viewBox to the rendered width so 1 SVG unit = 1 CSS px (legible text on phones).
+    this.W = fitWidth($('#nlSvg'));
+    this.pad = this.W < 600 ? 34 : 50;
+    this.fs = this.W < 600 ? 13 : 15;
+    $('#nlSvg').setAttribute('viewBox', `0 0 ${this.W} ${this.H}`);
+    const st = $('#nlStatic');
+    st.textContent = ''; $('#nlGhosts').textContent = ''; $('#nlBeam').textContent = ''; $('#nlMarkers').textContent = '';
+    $('#barStatic').textContent = ''; $('#barDyn').textContent = '';
+    const range = $('#slideRange');
+    range.max = String(d.friendly); range.step = String(c.step); range.value = String(state.shift);
+    range.disabled = d.friendly === 0 || !valid();
+    $('#autoSlideBtn').textContent = `⏪ Auto-Slide (−${Cents.fmt(d.friendly, c)})`;
+    $('#autoSlideBtn').disabled = range.disabled;
+    $('#zapBtn').disabled = range.disabled;
+    if (!valid()) { $('#nlEq').textContent = 'Tender must cover the bill.'; return; }
+
+    // Domain: from the slid bill to the original tender, with breathing room.
+    const low = state.bill - d.friendly;
+    const span = Math.max(d.tender - low, 500);
+    const steps = [5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 1000000];
+    let lo = Math.max(0, low - Math.round(span * 0.12)), hi = d.tender + Math.round(span * 0.12);
+    const maxTicks = this.W < 600 ? 6 : 10;
+    const step = steps.find((s) => (hi - lo) / s <= maxTicks) || 1000000;
+    lo = Math.max(0, Math.floor(lo / step) * step); hi = Math.ceil(hi / step) * step;
+    if (hi === lo) hi = lo + step;
+    this.lo = lo; this.hi = hi;
+
+    st.appendChild(svg('line', { x1: this.pad - 30, y1: this.axisY, x2: this.W - this.pad + 30, y2: this.axisY, class: 'axis', 'marker-start': 'url(#arrow)', 'marker-end': 'url(#arrow)', style: 'color:var(--muted)' }));
+    for (let v = lo; v <= hi; v += step) {
+      const x = this.x(v);
+      st.appendChild(svg('line', { x1: x, y1: this.axisY - 8, x2: x, y2: this.axisY + 8, class: 'tick' }));
+      st.appendChild(svg('text', { x, y: this.axisY + 28, 'text-anchor': 'middle', class: 'muted', 'font-size': this.fs }, Cents.short(v, c)));
+    }
+    // Ghosts of the original positions.
+    const g = $('#nlGhosts');
+    this.ghostB = svg('line', { x1: this.x(state.bill), x2: this.x(state.bill), y1: this.axisY - 66, y2: this.axisY, class: 'ghost' });
+    this.ghostT = svg('line', { x1: this.x(d.tender), x2: this.x(d.tender), y1: this.axisY - 66, y2: this.axisY, class: 'ghost' });
+    g.append(this.ghostB, this.ghostT);
+    // Rigid beam.
+    const bm = $('#nlBeam');
+    this.beam = svg('rect', { y: this.axisY - 62, height: 30, rx: 8, class: 'beam' });
+    this.beamL = svg('line', { y1: this.axisY - 32, y2: this.axisY, class: 'gap-line' });
+    this.beamR = svg('line', { y1: this.axisY - 32, y2: this.axisY, class: 'gap-line' });
+    this.beamText = svg('text', { y: this.axisY - 42, 'text-anchor': 'middle', class: 'beam-text', 'font-size': this.fs }, `CHANGE GAP ${Cents.fmt(d.change, c)}`);
+    bm.append(this.beam, this.beamL, this.beamR, this.beamText);
+    // Markers.
+    const mk = $('#nlMarkers');
+    this.mB = svg('circle', { cy: this.axisY, r: 11, class: 'bill' });
+    this.mT = svg('circle', { cy: this.axisY, r: 11, class: 'tender' });
+    this.lB = svg('text', { y: this.axisY + 58, 'text-anchor': 'end', 'font-size': this.fs + 2, 'font-weight': 900, class: 'bill' });
+    this.lT = svg('text', { y: this.axisY + 58, 'text-anchor': 'start', 'font-size': this.fs + 2, 'font-weight': 900, class: 'tender' });
+    mk.append(this.mB, this.mT, this.lB, this.lT);
+
+    Bars.build();
+    this.render();
+  },
+  render() {
+    if (!valid() || !this.beam) return;
+    const c = cur(), d = derive(), s = state.shift;
+    const b = state.bill - s, t = d.tender - s;
+    const xb = this.x(b), xt = this.x(t);
+    this.mB.setAttribute('cx', xb); this.mT.setAttribute('cx', xt);
+    this.lB.setAttribute('x', xb + 8); this.lT.setAttribute('x', xt - 8);
+    this.lB.textContent = `BILL ${Cents.fmt(b, c)}`;
+    this.lT.textContent = `TENDER ${Cents.fmt(t, c)}`;
+    // Keep labels readable when the gap is narrow.
+    if (xt - xb < (this.W < 600 ? 200 : 260)) {
+      // Narrow gap: stack the labels, centred under each marker but kept inside the canvas.
+      const half = this.fs * 5.5, clamp = (x) => Math.min(Math.max(x, half), this.W - half);
+      this.lB.setAttribute('text-anchor', 'middle'); this.lT.setAttribute('text-anchor', 'middle');
+      this.lB.setAttribute('x', clamp(xb)); this.lT.setAttribute('x', clamp(xt));
+      this.lT.setAttribute('y', this.axisY + 78);
+    } else {
+      this.lB.setAttribute('text-anchor', 'end'); this.lT.setAttribute('text-anchor', 'start');
+      this.lT.setAttribute('y', this.axisY + 58);
+    }
+    this.beam.setAttribute('x', xb); this.beam.setAttribute('width', Math.max(2, xt - xb));
+    this.beamL.setAttribute('x1', xb); this.beamL.setAttribute('x2', xb);
+    this.beamR.setAttribute('x1', xt); this.beamR.setAttribute('x2', xt);
+    this.beamText.setAttribute('x', (xb + xt) / 2);
+    this.beamText.textContent = xt - xb < this.fs * 11 ? Cents.fmt(d.change, c) : `CHANGE GAP ${Cents.fmt(d.change, c)}`;
+    this.beamText.style.display = xt - xb < this.fs * 4.5 ? 'none' : '';
+    const o = s > 0 ? '0.7' : '0';
+    this.ghostB.style.opacity = o; this.ghostT.style.opacity = o;
+
+    const range = $('#slideRange');
+    if (range.value !== String(s)) range.value = String(s);
+    $('#slideVal').textContent = `−${Cents.fmt(s, c)}`;
+    const eq = $('#nlEq');
+    eq.textContent = '';
+    eq.append(`${Cents.fmt(t, c)} − ${Cents.fmt(b, c)} = `);
+    const gEl = document.createElement('span'); gEl.className = 'g'; gEl.textContent = Cents.fmt(t - b, c);
+    eq.appendChild(gEl);
+    const friendly = s === d.friendly && d.friendly > 0;
+    $('#friendlyBadge').classList.toggle('off', !friendly);
+    Bars.render();
+    // Tick each time the slide crosses a whole dollar.
+    const dollar = Cents.whole(b);
+    if (this.lastDollar !== null && dollar !== this.lastDollar) Sfx.tick();
+    this.lastDollar = dollar;
+  },
+  cancel() { cancelAnimationFrame(this.anim); this.anim = 0; },
+  animateTo(target, ms = 900, onDone) {
+    this.cancel();
+    const from = state.shift;
+    if (reducedMotion() || from === target) { state.shift = target; this.render(); onDone && onDone(); return; }
+    const t0 = performance.now();
+    const stepUnit = cur().step;
+    const frame = (now) => {
+      const k = Math.min(1, (now - t0) / ms);
+      // Interpolate, then snap to a whole number of the smallest coin: still integer cents.
+      const raw = from + (target - from) * easeInOut(k);
+      state.shift = Math.round(raw / stepUnit) * stepUnit;
+      if (k >= 1) state.shift = target;
+      this.render();
+      if (k < 1) this.anim = requestAnimationFrame(frame);
+      else { this.anim = 0; onDone && onDone(); }
+    };
+    this.anim = requestAnimationFrame(frame);
+  },
+};
+
+const Bars = {
+  W: 1000, H: 200, pad: 16, yT: 40, yB: 120, h: 44, fs: 15, scale: 1,
+  xs(c) { return this.pad + c * this.scale; },
+  parts(v) {
+    const base = v - (v % 1000), odd = (v % 1000) - (v % 100), cents = v % 100;
+    return [['base', base], ['odd', odd], ['cents', cents]];
+  },
+  build() {
+    const c = cur(), d = derive();
+    this.W = fitWidth($('#barSvg'));
+    this.fs = this.W < 600 ? 13 : 15;
+    $('#barSvg').setAttribute('viewBox', `0 0 ${this.W} ${this.H}`);
+    this.scale = (this.W - 2 * this.pad) / Math.max(d.tender, 1);
+    const st = $('#barStatic');
+    const bar = (v, y, label, cls) => {
+      st.appendChild(svg('text', { x: this.pad, y: y - 8, 'font-size': this.fs, 'font-weight': 900, class: cls }, `${label} ${Cents.fmt(v, c)}`));
+      let acc = 0;
+      for (const [kind, amt] of this.parts(v)) {
+        if (!amt) continue;
+        const x = this.xs(acc), w = amt * this.scale;
+        st.appendChild(svg('rect', { x, y, width: Math.max(1, w - 2), height: this.h, rx: 6, class: `seg-${kind}` }));
+        if (w > this.fs * 3) st.appendChild(svg('text', { x: x + w / 2, y: y + this.h / 2 + 5, 'text-anchor': 'middle', class: 'seg-label', 'font-size': this.fs }, Cents.short(amt, c)));
+        acc += amt;
+      }
+    };
+    bar(d.tender, this.yT, 'TENDER', 'tender');
+    bar(state.bill, this.yB, 'BILL', 'bill');
+    const dy = $('#barDyn');
+    this.veilT = svg('rect', { y: this.yT - 2, height: this.h + 4, class: 'zap-veil' });
+    this.hatchT = svg('rect', { y: this.yT - 2, height: this.h + 4, fill: 'url(#hatch)' });
+    this.veilB = svg('rect', { y: this.yB - 2, height: this.h + 4, class: 'zap-veil' });
+    this.hatchB = svg('rect', { y: this.yB - 2, height: this.h + 4, fill: 'url(#hatch)' });
+    this.cutT = svg('line', { y1: this.yT - 6, y2: this.yT + this.h + 6, class: 'cut' });
+    this.cutB = svg('line', { y1: this.yB - 6, y2: this.yB + this.h + 6, class: 'cut' });
+    this.gap = svg('line', { y1: this.yB + this.h + 14, y2: this.yB + this.h + 14, class: 'gap-line', 'marker-start': 'url(#arrow)', 'marker-end': 'url(#arrow)', style: 'color:var(--emerald)' });
+    this.gapText = svg('text', { y: this.yB + this.h + 34, 'text-anchor': 'middle', 'font-size': this.fs, 'font-weight': 900, fill: 'var(--emerald-ink)' }, `change ${Cents.fmt(d.change, c)} — unchanged`);
+    dy.append(this.veilT, this.hatchT, this.veilB, this.hatchB, this.cutT, this.cutB, this.gap, this.gapText);
+  },
+  render() {
+    if (!this.veilT) return;
+    const d = derive(), s = state.shift, w = s * this.scale;
+    const set = (veil, hatch, cut, v) => {
+      const x = this.xs(v - s);
+      for (const r of [veil, hatch]) { r.setAttribute('x', x); r.setAttribute('width', Math.max(0, w)); }
+      cut.setAttribute('x1', x); cut.setAttribute('x2', x);
+      cut.style.opacity = s > 0 ? '1' : '0';
+    };
+    set(this.veilT, this.hatchT, this.cutT, d.tender);
+    set(this.veilB, this.hatchB, this.cutB, state.bill);
+    const xb = this.xs(state.bill - s), xt = this.xs(d.tender - s);
+    this.gap.setAttribute('x1', xb); this.gap.setAttribute('x2', xt);
+    this.gap.style.opacity = xt - xb > 8 ? '1' : '0';
+    const half = this.fs * 8;
+    this.gapText.setAttribute('x', Math.min(Math.max((xb + xt) / 2, half), this.W - half));
+  },
+};
+
+/* =====================================================================
+ * 6. VIEW 2 — COIN-FUSION BUCKET
+ * ===================================================================== */
+const Fusion = {
+  steps: [], idx: 0, timers: [],
+  clearTimers() { this.timers.forEach(clearTimeout); this.timers = []; },
+  later(fn, ms) { this.timers.push(setTimeout(fn, reducedMotion() ? 0 : ms)); },
+  build() {
+    this.clearTimers();
+    const c = cur(), d = derive();
+    $('#posTotal').textContent = Cents.fmt(state.bill, c);
+    $('#posCash').textContent = Cents.fmt(state.note, c);
+    $('#posChange').textContent = d.pos >= 0 ? Cents.fmt(d.pos, c) : 'DUE ' + Cents.fmt(-d.pos, c);
+    $('#bAtot').textContent = Cents.fmt(Math.max(0, d.pos), c);
+    $('#bBtot').textContent = Cents.fmt(state.extra, c);
+    renderParts($('#bucketA'), d.pos > 0 ? Cents.greedy(d.pos, c).parts : [], c, true);
+    renderParts($('#bucketB'), Cents.greedy(state.extra, c).parts, c, true);
+    const rows = $('#fuseRows'); rows.textContent = '';
+    const msg = $('#fuseMsg'); msg.textContent = '';
+    $('#fuseCompare').textContent = '';
+    this.idx = 0; this.steps = [];
+    const disable = (v) => { $('#fusePlay').disabled = v; $('#fuseStep').disabled = v; };
+    if (d.change < 0) { msg.textContent = 'Tender doesn’t cover the bill yet.'; disable(true); return; }
+    if (d.pos < 0) { msg.textContent = `The note alone is short by ${Cents.fmt(-d.pos, c)} — the drawer wouldn’t open. Use a bigger note.`; disable(true); return; }
+    if (state.extra === 0) { msg.textContent = 'No late coins — set “Extra coins” (e.g. 1.70) to see the fusion.'; }
+    disable(false);
+
+    // Integer-cents decomposition of the fusion.
+    const posC = d.pos % 100, posD = d.pos - posC;
+    const exC = state.extra % 100, exD = state.extra - exC;
+    const cSum = posC + exC, carry = cSum - (cSum % 100), cLeft = cSum % 100;
+    const dSum = posD + exD + carry;
+
+    if (posC || exC) {
+      this.steps.push({
+        label: 'Fuse the cents',
+        ins: [[posC, 'c'], [exC, 'c']].filter(([v]) => v),
+        out: carry ? [[carry, 'd']].concat(cLeft ? [[cLeft, 'c']] : []) : [[cLeft, 'c']],
+      });
+    }
+    const dIns = [[posD, 'd'], [exD, 'd'], [carry, 'd']].filter(([v]) => v);
+    if (dIns.length) this.steps.push({ label: 'Fuse the dollars', ins: dIns, out: [[dSum, 'n']] });
+    this.steps.push({ label: 'Hand over (fewest pieces)', handover: d.change });
+
+    for (const st of this.steps) {
+      const row = document.createElement('div');
+      row.className = 'fuse-row';
+      const lab = document.createElement('span'); lab.className = 'lab'; lab.textContent = st.label;
+      row.appendChild(lab);
+      if (st.handover !== undefined) {
+        const chips = document.createElement('div'); chips.className = 'chips handover';
+        row.appendChild(chips);
+        st.chips = chips;
+      } else {
+        const tok = (v, k, cls) => { const t = document.createElement('span'); t.className = `tok ${k} ${cls}`; t.textContent = Cents.short(v, c); return t; };
+        st.ins.forEach(([v, k], i) => {
+          if (i) { const p = document.createElement('span'); p.className = 'op'; p.textContent = '+'; row.appendChild(p); }
+          row.appendChild(tok(v, k, 'in'));
+        });
+        const arrow = document.createElement('span'); arrow.className = 'op'; arrow.textContent = '→'; row.appendChild(arrow);
+        st.out.forEach(([v, k], i) => {
+          if (i) { const p = document.createElement('span'); p.className = 'op res-op'; p.textContent = '+'; row.appendChild(p); }
+          row.appendChild(tok(v, k, 'res'));
+        });
+      }
+      rows.appendChild(row);
+      st.row = row;
+    }
+  },
+  playStep() {
+    const st = this.steps[this.idx];
+    if (!st) return false;
+    this.idx++;
+    const row = st.row;
+    row.classList.add('show');
+    if (st.handover !== undefined) {
+      const c = cur(), g = Cents.greedy(st.handover, c);
+      this.later(() => {
+        renderParts(st.chips, g.parts, c, false);
+        [...st.chips.children].forEach((el, i) => { el.style.animationDelay = `${i * 90}ms`; });
+        Sfx.good();
+        const before = Cents.greedy(derive().pos, c).count;
+        $('#fuseCompare').innerHTML = '';
+        $('#fuseCompare').append(
+          'Fused hand-over: ', Object.assign(document.createElement('b'), { textContent: `${g.count} piece${g.count === 1 ? '' : 's'}` }),
+          ` (${g.parts.map((p) => `${p.n}× ${Cents.short(p.d, c)}`).join(' + ') || 'nothing'}) instead of counting out `,
+          Object.assign(document.createElement('b'), { textContent: `${before} piece${before === 1 ? '' : 's'}` }),
+          ` for ${Cents.fmt(derive().pos, c)} — and the customer's coins stay in your drawer.`
+        );
+      }, 250);
+      return true;
+    }
+    const target = row.querySelector('.tok.res');
+    this.later(() => {
+      const tr = target.getBoundingClientRect();
+      row.querySelectorAll('.tok.in').forEach((el) => {
+        const r = el.getBoundingClientRect();
+        el.style.setProperty('--dx', `${tr.left + tr.width / 2 - (r.left + r.width / 2)}px`);
+        el.style.setProperty('--dy', `${tr.top - r.top}px`);
+      });
+      row.classList.add('go');
+      Sfx.fuse();
+    }, 350);
+    this.later(() => row.classList.add('done'), 900);
+    return true;
+  },
+  play() {
+    if (this.idx >= this.steps.length) this.build();
+    const run = () => { if (this.playStep()) this.later(run, 1300); };
+    run();
+  },
+};
+
+/* =====================================================================
+ * 7. VIEW 3 — TIMED CASHIER SPEED DRILL
+ * ===================================================================== */
+const drill = { mode: 'shift', running: false };
+const Drill = {
+  SHIFT_N: 5, RUSH_MS: 60000, SNAP_MS: 3000,
+  raf: 0, t0: 0, custT0: 0, current: null, tray: [], results: [], score: 0, last: null,
+  buildKeypad() {
+    const c = cur(), kp = $('#keypad');
+    kp.textContent = '';
+    for (const d of Cents.denoms(c)) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'denom'; b.dataset.d = String(d);
+      b.setAttribute('aria-label', `Add ${Cents.short(d, c)}`);
+      b.appendChild(moneyChip(d, c, false));
+      kp.appendChild(b);
+    }
+  },
+  start() {
+    Sfx.ensure();
+    this.results = []; this.score = 0; this.tray = [];
+    drill.running = true;
+    $('#drillPlay').hidden = false; $('#drillResults').hidden = true;
+    $('#drillStart').textContent = '■ Stop';
+    $('#timerLabel').textContent = drill.mode === 'rush' ? 'Left' : 'Time';
+    $('#feedback').textContent = ''; $('#feedback').className = 'feedback';
+    this.t0 = performance.now();
+    this.next();
+    const loop = (now) => {
+      if (!drill.running) return;
+      const el = now - this.t0;
+      if (drill.mode === 'rush') {
+        const left = this.RUSH_MS - el;
+        if (left <= 0) { $('#drillTimer').textContent = '0.000s'; this.finish(); return; }
+        $('#drillTimer').textContent = this.fmtMs(left);
+      } else {
+        $('#drillTimer').textContent = this.fmtMs(el);
+      }
+      this.raf = requestAnimationFrame(loop);
+    };
+    this.raf = requestAnimationFrame(loop);
+    this.renderHud();
+  },
+  fmtMs(ms) {
+    const m = Math.max(0, Math.round(ms));
+    return `${(m - (m % 1000)) / 1000}.${String(m % 1000).padStart(3, '0')}s`;
+  },
+  next() {
+    const c = cur();
+    this.current = genCustomer(c);
+    this.tray = [];
+    const k = this.current;
+    $('#tkLine1').textContent = k.extra
+      ? `Bill ${Cents.fmt(k.bill, c)}. Customer hands a ${Cents.short(k.note, c)} note… then adds ${Cents.fmt(k.extra, c)} in coins.`
+      : `Bill ${Cents.fmt(k.bill, c)}. Customer hands a ${Cents.short(k.note, c)} note.`;
+    $('#tkLine2').textContent = `${Cents.fmt(k.tender, c)} − ${Cents.fmt(k.bill, c)} = ?`;
+    this.renderTray(); this.renderHud();
+    this.custT0 = performance.now();
+  },
+  add(d) {
+    if (!drill.running) return;
+    this.tray.push(d);
+    isNote(d, cur()) ? Sfx.paper() : Sfx.coin();
+    this.renderTray();
+  },
+  undo() { if (this.tray.pop() !== undefined) { Sfx.tick(); this.renderTray(); } },
+  clear() { if (this.tray.length) { this.tray = []; Sfx.tick(); this.renderTray(); } },
+  trayParts() {
+    const counts = new Map();
+    for (const d of this.tray) counts.set(d, (counts.get(d) || 0) + 1);
+    return [...counts.entries()].sort((a, b) => b[0] - a[0]).map(([d, n]) => ({ d, n }));
+  },
+  renderTray() {
+    const c = cur();
+    renderParts($('#trayChips'), this.trayParts(), c, true);
+    const total = this.tray.reduce((a, b) => a + b, 0);
+    $('#trayTotal').textContent = `Tray: ${Cents.fmt(total, c)}`;
+    $('#trayCount').textContent = `${this.tray.length} piece${this.tray.length === 1 ? '' : 's'}`;
+  },
+  renderHud() {
+    const n = this.results.length + (drill.running ? 1 : 0);
+    $('#drillCust').textContent = drill.mode === 'shift' ? `${Math.min(n, this.SHIFT_N)}/${this.SHIFT_N}` : String(n || '–');
+    $('#drillScore').textContent = String(this.score);
+  },
+  submit() {
+    if (!drill.running || !this.current) return;
+    const c = cur(), k = this.current;
+    const ms = Math.round(performance.now() - this.custT0);
+    const given = this.tray.reduce((a, b) => a + b, 0);
+    const min = Cents.greedy(k.change, c);
+    const pieces = this.tray.length;
+    let verdict, pts, emoji;
+    if (given !== k.change) { verdict = 'miss'; pts = 0; emoji = '❌'; }
+    else if (pieces > min.count) { verdict = 'over'; pts = 40; emoji = '🟨'; }
+    else if (ms <= this.SNAP_MS) { verdict = 'snap'; pts = 150; emoji = '⚡'; }
+    else { verdict = 'ok'; pts = 100; emoji = '✅'; }
+    this.score += pts;
+    this.results.push({ ...k, given, pieces, min: min.count, ms, verdict, pts, emoji });
+    this.last = k;
+    const fb = $('#feedback'), card = $('#ticket');
+    const minTxt = min.parts.map((p) => `${p.n}× ${Cents.short(p.d, c)}`).join(' + ');
+    card.classList.remove('flash-good', 'flash-bad'); void card.offsetWidth;
+    if (verdict === 'miss') {
+      fb.className = 'feedback bad'; fb.textContent = `❌ Gave ${Cents.fmt(given, c)} — needed ${Cents.fmt(k.change, c)} (${minTxt}).`;
+      card.classList.add('flash-bad'); Sfx.bad();
+    } else if (verdict === 'over') {
+      fb.className = 'feedback meh'; fb.textContent = `🟨 Right amount, ${pieces} pieces — could be ${min.count}: ${minTxt}.`;
+      Sfx.meh();
+    } else {
+      fb.className = 'feedback good';
+      fb.textContent = `${emoji} ${verdict === 'snap' ? 'SNAP!' : 'Correct!'} ${this.fmtMs(ms)} · ${Cents.fmt(k.change, c)} in ${pieces} piece${pieces === 1 ? '' : 's'}.`;
+      card.classList.add('flash-good'); verdict === 'snap' ? Sfx.snap() : Sfx.good();
+    }
+    if (drill.mode === 'shift' && this.results.length >= this.SHIFT_N) { this.finish(); return; }
+    this.next();
+  },
+  abort() {
+    if (!drill.running) return;
+    drill.running = false;
+    cancelAnimationFrame(this.raf);
+    $('#drillPlay').hidden = true;
+    $('#drillStart').textContent = '▶ Start';
+    $('#drillTimer').textContent = '0.000s';
+    this.results = []; this.score = 0; this.renderHud();
+  },
+  finish() {
+    drill.running = false;
+    cancelAnimationFrame(this.raf);
+    const totalMs = Math.round(performance.now() - this.t0);
+    this.totalMs = drill.mode === 'rush' ? this.RUSH_MS : totalMs;
+    if (drill.mode === 'shift') $('#drillTimer').textContent = this.fmtMs(totalMs);
+    $('#drillPlay').hidden = true; $('#drillResults').hidden = false;
+    $('#drillStart').textContent = '▶ Start';
+    Sfx.fanfare();
+    const isBest = this.saveBest();
+    $('#scorecard').textContent = this.scorecard() + (isBest ? '\n\n🏆 New personal best!' : '');
+    this.renderTable();
+    this.renderHud();
+    this.renderBest();
+    $('#explainBtn').disabled = !this.last;
+  },
+  scorecard() {
+    const c = cur(), r = this.results;
+    const exact = r.filter((x) => x.verdict === 'snap' || x.verdict === 'ok').length;
+    const snaps = r.filter((x) => x.verdict === 'snap').length;
+    const rows = [];
+    for (let i = 0; i < r.length; i += 10) rows.push(r.slice(i, i + 10).map((x) => x.emoji).join(''));
+    const title = drill.mode === 'shift' ? `🧾 ${this.SHIFT_N}-Customer Shift` : '⏱️ 60-Second Rush';
+    const lines = [
+      `SNAPCHANGE ${title} · ${c.code}`,
+      rows.join('\n') || '(no customers served)',
+      drill.mode === 'shift' ? `⏱️ ${this.fmtMs(this.totalMs)}` : `🧍 ${r.length} served`,
+      `🎯 ${exact}/${r.length} exact · ⚡ ${snaps} snaps · 🏆 ${this.score} pts`,
+      location.origin + location.pathname,
+    ];
+    return lines.join('\n');
+  },
+  renderTable() {
+    const c = cur(), t = $('#resultTable');
+    t.textContent = '';
+    const head = t.createTHead().insertRow();
+    ['#', 'Bill', 'Tender', 'Change', 'Given', 'Pieces', 'Time', ''].forEach((h) => { const th = document.createElement('th'); th.textContent = h; head.appendChild(th); });
+    const body = t.createTBody();
+    this.results.forEach((x, i) => {
+      const tr = body.insertRow();
+      [String(i + 1), Cents.fmt(x.bill, c), Cents.fmt(x.tender, c), Cents.fmt(x.change, c), Cents.fmt(x.given, c), `${x.pieces}/${x.min}`, this.fmtMs(x.ms), x.emoji]
+        .forEach((v) => { tr.insertCell().textContent = v; });
+    });
+  },
+  bestKey: 'snapchange.best.v2',
+  loadBest() { try { return JSON.parse(localStorage.getItem(this.bestKey)) || {}; } catch (e) { return {}; } },
+  saveBest() {
+    const all = this.loadBest(), key = `${drill.mode}:${state.cur}`, prev = all[key];
+    const cand = { pts: this.score, ms: this.totalMs };
+    const better = !prev || cand.pts > prev.pts || (cand.pts === prev.pts && drill.mode === 'shift' && cand.ms < prev.ms);
+    if (better && this.results.length) {
+      all[key] = cand;
+      try { localStorage.setItem(this.bestKey, JSON.stringify(all)); } catch (e) { /* private mode */ }
+      return !!prev;
+    }
+    return false;
+  },
+  renderBest() {
+    const b = this.loadBest()[`${drill.mode}:${state.cur}`];
+    $('#bestLine').textContent = b ? `Personal best (${drill.mode === 'shift' ? 'Shift' : 'Rush'}, ${state.cur}): ${b.pts} pts${drill.mode === 'shift' ? ` in ${this.fmtMs(b.ms)}` : ''}` : '';
+  },
+};
+
+/* =====================================================================
+ * 8. TABS + WIRING
+ * ===================================================================== */
+function showView(v, focus) {
+  if (!VIEWS.includes(v)) return;
+  state.view = v;
+  for (const name of VIEWS) {
+    const tab = $(`#tab-${name}`), panel = $(`#view-${name}`);
+    const on = name === v;
+    tab.setAttribute('aria-selected', String(on));
+    tab.tabIndex = on ? 0 : -1;
+    panel.hidden = !on;
+    if (on && focus) tab.focus();
+  }
+  if (v !== 'drill') Drill.abort();
+  if (v === 'line') NL.build(); // measure now that the panel is visible
+  writeURL();
+}
+
+function wire() {
+  ui.bill.addEventListener('change', () => onMoneyInput('bill', ui.billBox, 1));
+  ui.extra.addEventListener('change', () => onMoneyInput('extra', ui.extraBox, 0));
+  for (const el of [ui.bill, ui.extra]) {
+    el.addEventListener('keydown', (e) => { if (e.key === 'Enter') el.blur(); });
+    el.addEventListener('blur', () => { if (!el.getAttribute('aria-invalid')) syncScenarioInputs(); });
+  }
+  ui.note.addEventListener('change', () => { state.note = parseInt(ui.note.value, 10); commitScenario(); });
+  ui.code.addEventListener('change', () => setCurrency(ui.code.value));
+  document.querySelectorAll('#curToggle button').forEach((b) => b.addEventListener('click', () => {
+    const sym = b.dataset.sym;
+    if (cur().symbol !== sym) setCurrency(SYMBOL_DEFAULT[sym]);
+  }));
+  $('#muteBtn').addEventListener('click', (e) => {
+    Sfx.muted = !Sfx.muted;
+    e.currentTarget.textContent = Sfx.muted ? '🔇' : '🔊';
+    e.currentTarget.setAttribute('aria-pressed', String(Sfx.muted));
+    try { localStorage.setItem('snapchange.muted', Sfx.muted ? '1' : '0'); } catch (err) { /* ignore */ }
+  });
+  $('#shareBtn').addEventListener('click', async () => {
+    toast((await copyText(shareURL())) ? 'Share link copied 🔗' : 'Copy failed — use the address bar');
+  });
+  $('#randomBtn').addEventListener('click', () => {
+    const k = genCustomer(cur());
+    Object.assign(state, { bill: k.bill, note: k.note, extra: k.extra });
+    syncScenarioInputs(); commitScenario();
+  });
+  $('#classicBtn').addEventListener('click', () => {
+    Object.assign(state, CLASSIC);
+    syncScenarioInputs(); commitScenario();
+  });
+
+  // View 1
+  $('#slideRange').addEventListener('input', (e) => {
+    NL.cancel();
+    state.shift = parseInt(e.target.value, 10) || 0;
+    NL.render();
+  });
+  $('#autoSlideBtn').addEventListener('click', () => { Sfx.ensure(); NL.animateTo(derive().friendly, 1100, () => Sfx.good()); });
+  $('#resetSlideBtn').addEventListener('click', () => NL.animateTo(0, 600));
+  $('#zapBtn').addEventListener('click', () => { Sfx.zap(); NL.animateTo(derive().friendly, 700, () => Sfx.good()); });
+
+  // View 2
+  $('#fusePlay').addEventListener('click', () => { Sfx.ensure(); Fusion.play(); });
+  $('#fuseStep').addEventListener('click', () => { Sfx.ensure(); if (!Fusion.playStep()) { Fusion.build(); Fusion.playStep(); } });
+  $('#fuseReset').addEventListener('click', () => Fusion.build());
+
+  // View 3
+  document.querySelectorAll('#modeToggle button').forEach((b) => b.addEventListener('click', () => {
+    if (drill.running) Drill.abort();
+    drill.mode = b.dataset.mode;
+    document.querySelectorAll('#modeToggle button').forEach((x) => x.setAttribute('aria-checked', String(x === b)));
+    Drill.renderBest(); writeURL();
+  }));
+  $('#drillStart').addEventListener('click', () => (drill.running ? Drill.abort() : Drill.start()));
+  $('#againBtn').addEventListener('click', () => Drill.start());
+  $('#keypad').addEventListener('click', (e) => {
+    const b = e.target.closest('.denom');
+    if (b) Drill.add(parseInt(b.dataset.d, 10));
+  });
+  $('#undoBtn').addEventListener('click', () => Drill.undo());
+  $('#clearBtn').addEventListener('click', () => Drill.clear());
+  $('#submitBtn').addEventListener('click', () => Drill.submit());
+  $('#copyScore').addEventListener('click', async () => {
+    toast((await copyText(Drill.scorecard())) ? 'Scorecard copied 📋' : 'Copy failed');
+  });
+  $('#explainBtn').addEventListener('click', () => {
+    const k = Drill.last; if (!k) return;
+    Object.assign(state, { bill: k.bill, note: k.note, extra: k.extra });
+    syncScenarioInputs(); commitScenario('Loaded your last drill customer.');
+    showView('line');
+    window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' });
+  });
+  document.addEventListener('keydown', (e) => {
+    if (!drill.running || state.view !== 'drill') return;
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
+    if (e.key === 'Enter') { e.preventDefault(); Drill.submit(); }
+    else if (e.key === 'Backspace') { e.preventDefault(); Drill.undo(); }
+    else if (e.key === 'Escape') Drill.clear();
+  });
+
+  let resizeT = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(() => { if (state.view === 'line' && !NL.anim) NL.build(); }, 150);
+  });
+
+  // Tabs (click + arrow keys)
+  document.querySelectorAll('[role="tab"]').forEach((t) => {
+    t.addEventListener('click', () => showView(t.dataset.view));
+    t.addEventListener('keydown', (e) => {
+      const i = VIEWS.indexOf(state.view);
+      if (e.key === 'ArrowRight') showView(VIEWS[(i + 1) % VIEWS.length], true);
+      else if (e.key === 'ArrowLeft') showView(VIEWS[(i + VIEWS.length - 1) % VIEWS.length], true);
+    });
+  });
+}
+
+/* =====================================================================
+ * 9. BOOT
+ * ===================================================================== */
+function boot() {
+  try { Sfx.muted = localStorage.getItem('snapchange.muted') === '1'; } catch (e) { /* ignore */ }
+  $('#muteBtn').textContent = Sfx.muted ? '🔇' : '🔊';
+  $('#muteBtn').setAttribute('aria-pressed', String(Sfx.muted));
+  const notes = readURL();
+  document.querySelectorAll('#modeToggle button').forEach((x) => x.setAttribute('aria-checked', String(x.dataset.mode === drill.mode)));
+  syncScenarioInputs();
+  Drill.buildKeypad();
+  wire();
+  commitScenario(notes.join(' '));
+  showView(state.view);
+  Drill.renderBest();
+  // Expose the engine for console experiments & tests.
+  window.SnapChange = { Cents, CURRENCIES, state, derive };
+}
+boot();
+
+// Offline-first: register the service worker (relative path works on GitHub Pages project sites).
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js', { scope: './' }).catch((err) => console.warn('SW registration failed', err));
+  });
+}
+})();
+</script>
+</body>
+</html>

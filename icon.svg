@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="SnapChange">
+  <rect width="512" height="512" fill="#0b1220"/>
+  <rect x="96" y="150" width="320" height="170" rx="22" fill="#10b981"/>
+  <rect x="122" y="176" width="268" height="118" rx="12" fill="none" stroke="#064e3b" stroke-width="10"/>
+  <text x="256" y="262" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="96" font-weight="700" fill="#064e3b">$10</text>
+  <circle cx="160" cy="352" r="50" fill="#f59e0b" stroke="#0b1220" stroke-width="10"/>
+  <circle cx="352" cy="352" r="50" fill="#06b6d4" stroke="#0b1220" stroke-width="10"/>
+  <path d="M232 380 l24 -40 l-4 28 h28 l-24 40 l4 -28 z" fill="#f8fafc"/>
+</svg>
