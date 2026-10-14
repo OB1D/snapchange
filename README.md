@@ -129,10 +129,12 @@ index.html                      the whole app: HTML + CSS + vanilla ES2020 JS + 
 manifest.json                   installable PWA manifest (icons, shortcuts to each view)
 sw.js                           offline-first service worker (precache + stale-while-revalidate)
 icon.svg, icon-192.png, icon-512.png   app icons (512 is also the maskable icon)
+counter.py                      optional self-hosted visitor counter (Python 3 standard library only)
 .github/workflows/deploy.yml    deploys the repo root to GitHub Pages on every push to main
+.github/FUNDING.yml             the repo's Sponsor button (GitHub Sponsors + Ko-fi)
 ```
 
-There is no build step, bundler, framework or CDN. It is ~95 KB of hand-written HTML/CSS/JS.
+There is no build step, bundler, framework or CDN. It is ~100 KB of hand-written HTML/CSS/JS.
 
 ---
 
@@ -164,10 +166,62 @@ Opening `index.html` from disk also works. Only the offline cache is skipped in 
 4. **Forking?** All paths are relative (`./sw.js`, `./manifest.json`), so the app works at any sub-path with no config changes.
 
 ### Shipping updates
-Browsers serve the cached shell first and refresh it in the background. When you change `index.html` or the icons, **bump `CACHE_VERSION` in `sw.js`** (currently `snapchange-v2.3.0`; next would be `snapchange-v2.3.1`). The new worker then installs, removes the old cache and takes over on the next visit.
+Browsers serve the cached shell first and refresh it in the background. When you change `index.html` or the icons, **bump `CACHE_VERSION` in `sw.js`** (currently `snapchange-v2.4.0`; next would be `snapchange-v2.4.1`). The new worker then installs, removes the old cache and takes over on the next visit.
 
 ### Why it scales
-The app is a static file on GitHub's CDN. It has no server, database or API calls, and is roughly 95 KB. After the first visit, every load comes from the service-worker cache, so millions of users cost the same as one.
+The app is a static file on GitHub's CDN and is roughly 100 KB. It needs no server, database or API. The only network call it can make is the optional visitor-counter ping below, and that is off until you set a URL. After the first visit, every load comes from the service-worker cache, so millions of users cost the same as one.
+
+---
+
+## Visitor counter (optional)
+
+`counter.py` is a tiny self-hosted visit counter. It needs only Python 3, using `http.server` and `sqlite3` from the standard library, and it stores its numbers in `visits.db`, which is git-ignored.
+
+| Endpoint | What it does |
+|---|---|
+| `GET /hit` | Counts one visit and returns `{"count": 1234, "unique_today": 56}` |
+| `GET /stats` | Read-only totals: all-time visits, today's visits and uniques, and the last 7 days |
+| `GET /health` | `{"ok": true}` |
+
+CORS allows `https://ob1d.github.io`. Add more origins with `--origin`, which you can repeat.
+
+```powershell
+python counter.py                                   # serve on http://127.0.0.1:8797
+python counter.py --stats                           # print visitor totals in PowerShell
+python counter.py --stats --json                    # the same, as JSON
+python counter.py --host 0.0.0.0 --trust-proxy      # behind your own HTTPS reverse proxy / tunnel
+```
+
+**Wiring it up.** Set `COUNTER_API_URL` near the top of the script in `index.html` to the counter's public **HTTPS** address, then bump `CACHE_VERSION`. A page served over HTTPS can't call a plain `http://` server. While `COUNTER_API_URL` is empty, which is the default, the app makes no request at all.
+
+When the counter is reachable, the footer shows a small badge such as `👀 1,234 visits · 56 today`. If the counter is offline or blocked, the badge stays hidden and nothing else changes. Each browser session sends one counted `/hit`. Reloads in the same session only read `/stats`.
+
+**Try it locally:**
+
+```powershell
+python -m http.server 8080                                  # terminal 1: the app
+python counter.py --origin http://localhost:8080            # terminal 2: the counter
+# set COUNTER_API_URL = 'http://localhost:8797' in index.html, then open http://localhost:8080/
+```
+
+**Privacy.** The counter sets no cookies and never stores an IP address. "Unique today" compares `sha256(daily random salt + IP + User-Agent)`. At midnight (server time) the salt and every hash are deleted, so past days keep only two numbers: visits and uniques. The request log leaves out IP addresses. Use `--trust-proxy` only when a reverse proxy you control sets `X-Forwarded-For`, because anyone can forge that header.
+
+---
+
+## Support & contributing
+
+SnapChange is free, ad-free and open source, and it works offline. It is built and maintained by one person. If it helps you or your team give change faster, here's how to help:
+
+- **☕ Tip on Ko-fi:** [ko-fi.com/ob1d](https://ko-fi.com/ob1d). Every coffee goes into more drills, currencies and polish.
+- **⭐ Star the repo.** It helps other cashiers, trainers and teachers find it.
+- **🐞 Report a bug or suggest an idea** in [Issues](https://github.com/OB1D/snapchange/issues). Wrong change, a confusing screen and a missing currency are all worth a report.
+- **🛠 Send a pull request.** Keep to the house rules:
+  - Zero dependencies and no build step.
+  - Every amount in integer cents.
+  - Mobile-first, with 44 px touch targets.
+  - Bump `CACHE_VERSION` in `sw.js` when the shell changes.
+
+The **Sponsor** button at the top of the repo comes from `.github/FUNDING.yml`. The app itself asks only once, quietly, after you finish a 5-customer shift, and keeps a single line in the footer.
 
 ---
 

@@ -1,0 +1,5 @@
+# visitor counter data (counter.py) - never commit
+visits.db
+visits.db-wal
+visits.db-shm
+__pycache__/
