@@ -267,12 +267,13 @@ dialog.fb-dialog{width:min(440px,calc(100vw - 32px))}
 .fb-inner[hidden]{display:none}
 .fb-inner h2{margin:0;font-size:1.2rem}
 .fb-inner .lede{margin:0}
-.fb-types{border:0;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.fb-types{border:0;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.45fr) minmax(0,1fr);gap:6px}
 .fb-types legend{padding:0;margin-bottom:6px}
 .fb-types label{position:relative}
 .fb-types input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
-.fb-types span{display:flex;align-items:center;justify-content:center;gap:4px;min-height:44px;padding:0 6px;border:1px solid var(--line);
-  border-radius:12px;background:var(--panel2);font-weight:750;font-size:.88rem;text-align:center;line-height:1.15}
+.fb-types span{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:56px;padding:4px;border:1px solid var(--line);
+  border-radius:12px;background:var(--panel2);font-weight:750;font-size:.82rem;text-align:center;line-height:1.1}
+.fb-types i{font-style:normal;font-size:1.15rem;line-height:1}
 .fb-types input:checked+span{background:var(--emerald);border-color:transparent;color:#022c1a}
 .fb-types input:focus-visible+span{outline:2px solid var(--blue);outline-offset:2px}
 .fb-types[aria-invalid="true"] span{border-color:var(--rose)}
@@ -621,9 +622,9 @@ dialog.fb-dialog{width:min(440px,calc(100vw - 32px))}
     <p class="lede">Spotted a bug, have an idea, or just want to say it helped? It goes straight to the developer.</p>
     <fieldset class="fb-types" id="fbTypes">
       <legend class="field">Type</legend>
-      <label><input type="radio" name="fbType" value="Bug"><span>🐞 Bug</span></label>
-      <label><input type="radio" name="fbType" value="Improvement"><span>💡 Improvement</span></label>
-      <label><input type="radio" name="fbType" value="Praise"><span>💚 Praise</span></label>
+      <label><input type="radio" name="fbType" value="Bug"><span><i aria-hidden="true">🐞</i>Bug</span></label>
+      <label><input type="radio" name="fbType" value="Improvement"><span><i aria-hidden="true">💡</i>Improvement</span></label>
+      <label><input type="radio" name="fbType" value="Praise"><span><i aria-hidden="true">💚</i>Praise</span></label>
     </fieldset>
     <label class="field" for="fbMsg">Message
       <textarea id="fbMsg" rows="5" maxlength="2000" placeholder="What happened, or what would make SnapChange better?"></textarea>
@@ -1539,6 +1540,7 @@ function wire() {
   const fbStatus = (text, bad) => { const s = $('fbStatus'); s.textContent = text; s.className = 'fb-status' + (bad ? ' bad' : ''); };
   const openFb = () => {
     $('fbForm').hidden = false; $('fbDone').hidden = true; fbStatus('');
+    for (const id of ['fbTypes', 'fbMsg', 'fbEmail']) $(id).removeAttribute('aria-invalid');
     $('fbCtx').textContent = 'Sent with: ' + fbScenario();
     if (typeof fb.showModal === 'function') { if (!fb.open) fb.showModal(); } else fb.setAttribute('open', '');
     Sfx.tap();
