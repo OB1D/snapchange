@@ -3,3 +3,6 @@ visits.db
 visits.db-wal
 visits.db-shm
 __pycache__/
+feedback.md
+feedback.archive.md
+triage/

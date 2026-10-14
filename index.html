@@ -260,6 +260,32 @@ a.btn{color:var(--text);text-decoration:none}
 .visit-badge{display:inline-flex;align-items:center;gap:6px;margin-top:6px;padding:3px 10px;border:1px solid var(--line);border-radius:999px;
   font-size:.72rem;font-variant-numeric:tabular-nums;color:var(--muted);opacity:.85}
 .visit-badge[hidden]{display:none}
+
+/* ---------- feedback dialog ---------- */
+dialog.fb-dialog{width:min(440px,calc(100vw - 32px))}
+.fb-inner{padding:20px;text-align:left;display:flex;flex-direction:column;gap:12px}
+.fb-inner[hidden]{display:none}
+.fb-inner h2{margin:0;font-size:1.2rem}
+.fb-inner .lede{margin:0}
+.fb-types{border:0;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.fb-types legend{padding:0;margin-bottom:6px}
+.fb-types label{position:relative}
+.fb-types input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.fb-types span{display:flex;align-items:center;justify-content:center;gap:4px;min-height:44px;padding:0 6px;border:1px solid var(--line);
+  border-radius:12px;background:var(--panel2);font-weight:750;font-size:.88rem;text-align:center;line-height:1.15}
+.fb-types input:checked+span{background:var(--emerald);border-color:transparent;color:#022c1a}
+.fb-types input:focus-visible+span{outline:2px solid var(--blue);outline-offset:2px}
+.fb-types[aria-invalid="true"] span{border-color:var(--rose)}
+.field textarea{width:100%;min-height:120px;resize:vertical;border-radius:10px;border:1px solid var(--line);background:var(--bg);
+  padding:10px 12px;font-size:16px;font-weight:500;text-transform:none;letter-spacing:0;line-height:1.4}
+.field textarea[aria-invalid="true"]{border-color:var(--rose);box-shadow:0 0 0 2px rgba(251,113,133,.25)}
+.fb-ctx{margin:0;font-size:.8rem;color:var(--muted);background:var(--panel2);border-radius:10px;padding:8px 10px;overflow-wrap:anywhere}
+.fb-status{margin:0;min-height:1.2em;font-weight:700;font-size:.9rem}
+.fb-status.bad{color:var(--rose)}
+.fb-note{margin:0;font-size:.75rem;color:var(--muted);text-align:center}
+.fb-done{text-align:center;align-items:center}
+.fb-done .big{font-size:2.4rem}
+.hp{position:absolute!important;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,30px);opacity:0;pointer-events:none;
   background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:800;box-shadow:var(--shadow);transition:.25s ease;z-index:50;max-width:calc(100% - 32px);text-align:center}
 .toast.show{opacity:1;transform:translate(-50%,0)}
@@ -562,6 +588,7 @@ a.btn{color:var(--text);text-decoration:none}
 
 <footer class="wrap">
   <p>SnapChange V2 · strict integer-cents engine · works offline · no ads, no cookies, no dependencies.</p>
+  <p><button type="button" class="btn small" id="feedbackBtn" aria-haspopup="dialog" aria-controls="fbDialog">💬 Feedback</button></p>
   <p class="support-line">SnapChange is free and open source. If it saves you time at the till, you can
     <a href="https://ko-fi.com/ob1d" target="_blank" rel="noopener">buy me a coffee on Ko-fi</a>, and bug reports, ideas and pull requests are welcome
     <a href="https://github.com/OB1D/snapchange" rel="noopener">on GitHub</a>.</p>
@@ -586,6 +613,38 @@ a.btn{color:var(--text);text-decoration:none}
       <button type="button" class="btn small" id="qrPrintBtn">🖨️ Print Cheat Sheet</button>
     </div>
     <div class="row center" style="margin-top:10px"><button type="button" class="btn primary" id="qrCloseBtn">Done</button></div>
+  </div>
+</dialog>
+<dialog id="fbDialog" class="qr-dialog fb-dialog" aria-labelledby="fbTitle">
+  <form class="fb-inner" id="fbForm" novalidate>
+    <h2 id="fbTitle">Send feedback</h2>
+    <p class="lede">Spotted a bug, have an idea, or just want to say it helped? It goes straight to the developer.</p>
+    <fieldset class="fb-types" id="fbTypes">
+      <legend class="field">Type</legend>
+      <label><input type="radio" name="fbType" value="Bug"><span>🐞 Bug</span></label>
+      <label><input type="radio" name="fbType" value="Improvement"><span>💡 Improvement</span></label>
+      <label><input type="radio" name="fbType" value="Praise"><span>💚 Praise</span></label>
+    </fieldset>
+    <label class="field" for="fbMsg">Message
+      <textarea id="fbMsg" rows="5" maxlength="2000" placeholder="What happened, or what would make SnapChange better?"></textarea>
+    </label>
+    <label class="field" for="fbEmail">Reply email (optional)
+      <input type="email" id="fbEmail" maxlength="254" autocomplete="email" inputmode="email" placeholder="you@example.com">
+    </label>
+    <div class="hp" aria-hidden="true"><label>Leave this empty <input type="text" id="fbHoney" name="_honey" tabindex="-1" autocomplete="off"></label></div>
+    <p class="fb-ctx" id="fbCtx"></p>
+    <p class="fb-status" id="fbStatus" role="status" aria-live="polite"></p>
+    <div class="row center">
+      <button type="button" class="btn ghost" id="fbCancelBtn">Cancel</button>
+      <button type="submit" class="btn primary" id="fbSendBtn">Send feedback</button>
+    </div>
+    <p class="fb-note">Sent by email through FormSubmit (formsubmit.co). Your email address is only used to reply to you.</p>
+  </form>
+  <div class="fb-inner fb-done" id="fbDone" hidden>
+    <div class="big" aria-hidden="true">✅</div>
+    <h2 id="fbDoneTitle">Thanks, feedback sent</h2>
+    <p class="lede">Every message is read. Bugs and ideas that make the maths clearer or the app easier on a phone get fixed first.</p>
+    <button type="button" class="btn primary" id="fbCloseBtn">Done</button>
   </div>
 </dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -617,6 +676,9 @@ const APP_URL = 'https://ob1d.github.io/snapchange/'; // must match the URL bake
 // Optional self-hosted visitor counter (counter.py). Set to its public HTTPS base URL, e.g. 'https://counter.example.com'.
 // Empty = no request is ever made and the footer badge stays hidden.
 const COUNTER_API_URL = '';
+// In-app feedback form posts here (FormSubmit AJAX endpoint), and also to COUNTER_API_URL + '/feedback' when set.
+const FEEDBACK_URL = 'https://formsubmit.co/ajax/0418665007mal@gmail.com';
+const FEEDBACK_TYPES = ['Bug', 'Improvement', 'Praise'];
 
 const cur = () => CURRENCIES[state.cur];
 const pad2 = (n) => String(n).padStart(2, '0');
@@ -1424,7 +1486,7 @@ function wire() {
     if (ok) Sfx.coin();
   });
   document.addEventListener('keydown', (e) => {
-    if (!drill.running || state.view !== 'drill' || $('qrDialog').open) return;
+    if (!drill.running || state.view !== 'drill' || $('qrDialog').open || $('fbDialog').open) return;
     if (e.target.matches('input, select, textarea')) return;
     if (e.key === 'Enter') { e.preventDefault(); submitChange(); }
     else if (e.key === 'Backspace') { e.preventDefault(); if (drill.tray.pop() !== undefined) renderTray(); }
@@ -1468,6 +1530,68 @@ function wire() {
   window.addEventListener('beforeprint', buildCheatSheet);
   $('qrShareBtn').addEventListener('click', () => {
     navigator.share({ title: 'SnapChange', text: 'Learn to give cash change in 3 seconds ⚡', url: APP_URL }).catch(() => { /* cancelled */ });
+  });
+  // feedback dialog: FormSubmit (+ optional counter.py /feedback); confirmation shown in place, no navigation
+  const fb = $('fbDialog');
+  let fbSending = false;
+  const fbScenario = () => `${state.cur} · bill ${fmt(state.bill)} · note ${fmt(state.note)} · extra ${fmt(state.extra)} · view ${state.view}`
+    + (state.view === 'drill' ? ` (${drill.mode})` : '');
+  const fbStatus = (text, bad) => { const s = $('fbStatus'); s.textContent = text; s.className = 'fb-status' + (bad ? ' bad' : ''); };
+  const openFb = () => {
+    $('fbForm').hidden = false; $('fbDone').hidden = true; fbStatus('');
+    $('fbCtx').textContent = 'Sent with: ' + fbScenario();
+    if (typeof fb.showModal === 'function') { if (!fb.open) fb.showModal(); } else fb.setAttribute('open', '');
+    Sfx.tap();
+  };
+  const closeFb = () => { if (typeof fb.close === 'function') fb.close(); else fb.removeAttribute('open'); };
+  const postJSON = async (url, body, opts) => {
+    const ctl = window.AbortController ? new AbortController() : null;
+    const timer = ctl && setTimeout(() => ctl.abort(), 12000);
+    try {
+      const res = await fetch(url, Object.assign({
+        method: 'POST', mode: 'cors', credentials: 'omit', cache: 'no-store', signal: ctl && ctl.signal,
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(body),
+      }, opts));
+      return { ok: res.ok, data: await res.json().catch(() => null) };
+    } catch (_) { return { ok: false, data: null }; } finally { if (timer) clearTimeout(timer); }
+  };
+  $('feedbackBtn').addEventListener('click', openFb);
+  $('fbCancelBtn').addEventListener('click', closeFb);
+  $('fbCloseBtn').addEventListener('click', closeFb);
+  fb.addEventListener('click', (e) => { if (e.target === fb) closeFb(); }); // backdrop click
+  fb.addEventListener('close', () => $('feedbackBtn').focus({ preventScroll: true }));
+  $('fbTypes').addEventListener('change', () => $('fbTypes').removeAttribute('aria-invalid'));
+  $('fbMsg').addEventListener('input', () => $('fbMsg').removeAttribute('aria-invalid'));
+  $('fbEmail').addEventListener('input', () => $('fbEmail').removeAttribute('aria-invalid'));
+  $('fbForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (fbSending) return;
+    const picked = $('fbForm').querySelector('input[name="fbType"]:checked');
+    const type = picked && FEEDBACK_TYPES.includes(picked.value) ? picked.value : '';
+    const message = $('fbMsg').value.trim();
+    const email = $('fbEmail').value.trim();
+    if (!type) { $('fbTypes').setAttribute('aria-invalid', 'true'); fbStatus('Pick a type: Bug, Improvement or Praise.', true); return; }
+    if (message.length < 3) { $('fbMsg').setAttribute('aria-invalid', 'true'); fbStatus('Please write a short message first.', true); $('fbMsg').focus(); return; }
+    if (email && !$('fbEmail').checkValidity()) { $('fbEmail').setAttribute('aria-invalid', 'true'); fbStatus('That reply email doesn\'t look right. Fix it or leave it blank.', true); $('fbEmail').focus(); return; }
+    if (navigator.onLine === false) { fbStatus('You\'re offline. Feedback needs a connection, so try again once you\'re back online.', true); return; }
+    const payload = {
+      _subject: 'SnapChange', _captcha: 'false', _template: 'table', _honey: $('fbHoney').value,
+      type, message, currency: state.cur, scenario: fbScenario(), page: shareURL(),
+    };
+    if (email) { payload.email = email; payload._replyto = email; }
+    fbSending = true; $('fbSendBtn').disabled = true; $('fbSendBtn').textContent = 'Sending…'; fbStatus('');
+    const counter = COUNTER_API_URL.trim().replace(/\/+$/, '');
+    const [viaForm, viaCounter] = await Promise.all([
+      postJSON(FEEDBACK_URL, payload),
+      counter ? postJSON(counter + '/feedback', payload, { referrerPolicy: 'no-referrer' }) : Promise.resolve(null),
+    ]);
+    fbSending = false; $('fbSendBtn').disabled = false; $('fbSendBtn').textContent = 'Send feedback';
+    const sent = (viaForm.ok && viaForm.data && String(viaForm.data.success) === 'true')
+      || !!(viaCounter && viaCounter.ok && viaCounter.data && viaCounter.data.ok === true);
+    if (!sent) { fbStatus('Couldn\'t send right now. Please try again in a moment.', true); Sfx.bad(); return; }
+    $('fbForm').reset();
+    $('fbForm').hidden = true; $('fbDone').hidden = false; $('fbCloseBtn').focus();
+    Sfx.good();
   });
   // keep the diagrams at true pixel scale across rotations / resizes
   let resizeTimer = 0;

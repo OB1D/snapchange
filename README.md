@@ -129,7 +129,9 @@ index.html                      the whole app: HTML + CSS + vanilla ES2020 JS + 
 manifest.json                   installable PWA manifest (icons, shortcuts to each view)
 sw.js                           offline-first service worker (precache + stale-while-revalidate)
 icon.svg, icon-192.png, icon-512.png   app icons (512 is also the maskable icon)
-counter.py                      optional self-hosted visitor counter (Python 3 standard library only)
+counter.py                      optional self-hosted visitor counter + feedback inbox (Python 3 stdlib only)
+triage.py, triage.ps1           feedback triage: fetch from Gmail / feedback.md, sandboxed Claude run, push guard
+tests/e2e.mjs                   headless Chrome checks (Node 22+, Python 3, Chrome; no npm packages)
 .github/workflows/deploy.yml    deploys the repo root to GitHub Pages on every push to main
 .github/FUNDING.yml             the repo's Sponsor button (GitHub Sponsors + Ko-fi)
 ```
@@ -166,10 +168,10 @@ Opening `index.html` from disk also works. Only the offline cache is skipped in 
 4. **Forking?** All paths are relative (`./sw.js`, `./manifest.json`), so the app works at any sub-path with no config changes.
 
 ### Shipping updates
-Browsers serve the cached shell first and refresh it in the background. When you change `index.html` or the icons, **bump `CACHE_VERSION` in `sw.js`** (currently `snapchange-v2.4.0`; next would be `snapchange-v2.4.1`). The new worker then installs, removes the old cache and takes over on the next visit.
+Browsers serve the cached shell first and refresh it in the background. When you change `index.html` or the icons, **bump `CACHE_VERSION` in `sw.js`** (currently `snapchange-v2.5.0`; next would be `snapchange-v2.5.1`). The new worker then installs, removes the old cache and takes over on the next visit.
 
 ### Why it scales
-The app is a static file on GitHub's CDN and is roughly 100 KB. It needs no server, database or API. The only network call it can make is the optional visitor-counter ping below, and that is off until you set a URL. After the first visit, every load comes from the service-worker cache, so millions of users cost the same as one.
+The app is a static file on GitHub's CDN and is roughly 100 KB. It needs no server, database or API. On its own it makes no network calls. The exceptions are the optional visitor-counter ping, which is off until you set a URL, and the feedback form, which only sends when someone presses **Send**. After the first visit, every load comes from the service-worker cache, so millions of users cost the same as one.
 
 ---
 
@@ -196,6 +198,8 @@ python counter.py --host 0.0.0.0 --trust-proxy      # behind your own HTTPS reve
 
 When the counter is reachable, the footer shows a small badge such as `👀 1,234 visits · 56 today`. If the counter is offline or blocked, the badge stays hidden and nothing else changes. Each browser session sends one counted `/hit`. Reloads in the same session only read `/stats`.
 
+It also accepts `POST /feedback` from the in-app form, as described below. The default port is `8797`; pass `--port` to change it.
+
 **Try it locally:**
 
 ```powershell
@@ -205,6 +209,69 @@ python counter.py --origin http://localhost:8080            # terminal 2: the co
 ```
 
 **Privacy.** The counter sets no cookies and never stores an IP address. "Unique today" compares `sha256(daily random salt + IP + User-Agent)`. At midnight (server time) the salt and every hash are deleted, so past days keep only two numbers: visits and uniques. The request log leaves out IP addresses. Use `--trust-proxy` only when a reverse proxy you control sets `X-Forwarded-For`, because anyone can forge that header.
+
+---
+
+## Feedback
+
+The **💬 Feedback** button in the footer opens an in-app form with three fields:
+- **Type:** Bug, Improvement or Praise.
+- **Message:** up to 2,000 characters.
+- **Reply email:** optional.
+
+On submit, the form `POST`s JSON to the FormSubmit AJAX endpoint (`FEEDBACK_URL` in `index.html`). The thank-you message appears in place, and the page never navigates away.
+
+Each submission includes these fields:
+
+| Field | Value |
+|---|---|
+| `_subject` | `SnapChange`, fixed. Triage filters on it. |
+| `_captcha` | `false` |
+| `_honey` | A hidden honeypot. Bots fill it in and FormSubmit drops those messages. |
+| `type`, `message` | What the person wrote. |
+| `email` / `_replyto` | Only when a reply email is given. |
+| `currency`, `scenario`, `page` | The active currency, the bill / note / extra / view, and a share link that reproduces it. |
+
+When `COUNTER_API_URL` is set, the same payload also goes to `counter.py`'s `POST /feedback`, which appends it to `feedback.md` (git-ignored). That endpoint accepts allowed origins only, drops honeypot hits silently, validates every field, and allows at most 5 per visitor per 10 minutes.
+
+**FormSubmit setup (one time).** The first submission makes FormSubmit email an **Activate Form** link to the inbox. Click it, and every submission after that is delivered. FormSubmit can also give you a random alias to use in place of the address in `FEEDBACK_URL`, which keeps the address out of the page source.
+
+## Feedback triage
+
+`triage.ps1` turns the inbox into fixes:
+
+```powershell
+$env:GMAIL_APP_PASSWORD = 'xxxx xxxx xxxx xxxx'   # Google account > Security > App passwords
+.\triage.ps1 -FetchOnly      # show unread "SnapChange" feedback (no Claude, no cost)
+.\triage.ps1                 # triage, fix, test, push
+.\triage.ps1 -NoPush         # same, but leave the commits for you to review
+```
+
+A run goes through these steps:
+
+1. **Fetch.** `triage.py fetch` reads unread Gmail messages whose subject contains `SnapChange` over IMAP. It uses `GMAIL_USER`, which defaults to the FormSubmit address, and `GMAIL_APP_PASSWORD`. When no password is set, it reads the local `feedback.md` instead. Fetching never marks mail as read. If there's nothing new, the run stops there and Claude is never started.
+2. **Triage.** `claude -p` follows the **Feedback triage** rules in `CLAUDE.md`:
+   1. Filter out spam and noise.
+   2. Collate duplicates.
+   3. Keep only changes that improve the maths clarity, the accuracy or the mobile UX without bloat.
+   4. Fix those, run `node tests/e2e.mjs`, and commit locally.
+3. **Sandbox.** That run is locked down:
+   - `--restricted` ignores your user settings and confines file tools to the repo.
+   - `--strict-mcp-config` loads no MCP servers.
+   - `dontAsk` permissions allow edits to `index.html`, `sw.js`, `README.md` and `manifest.json` only, and allow only the test, git-commit and git-diff commands.
+   - It has no web access and no push.
+   - `-BudgetUsd` caps the spend. The default is US$1 per run, on `-Model sonnet`.
+4. **Ack.** `triage.py ack` marks the fetched mail as read, or moves `feedback.md` entries to `feedback.archive.md`.
+5. **Guard.** The push guard comes from `origin/main`, not from the working tree, so a run can't loosen it. It blocks any commit that:
+   - touches a file other than the four app files,
+   - adds a new host, an external `<script src>`, an iframe, `eval`, a network call or cookies,
+   - changes more than 400 lines, or
+   - changes `index.html` without bumping `CACHE_VERSION`.
+6. **Push.** The headless Chrome tests run again, then `git push origin main`.
+
+If anything fails, the commits stay on local `main` for you to review. The next run refuses to start until you've dealt with them. Reports are saved to `triage/report-<time>.md`.
+
+**Tests.** `node tests/e2e.mjs` covers the visitor counter, the 5-customer shift and its support card, and the feedback dialog. In that dialog it checks validation, the locked fields, the in-app confirmation, the failure path and the fit at 320 px. It also covers the `/feedback` hardening and the `triage.py` fetch/ack round trip. Every FormSubmit request is intercepted, so tests never send email.
 
 ---
 
