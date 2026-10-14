@@ -54,17 +54,18 @@ p{margin:.4rem 0}
 .brand svg{width:28px;height:28px;border-radius:7px;flex:none}
 .qr-label{display:none}
 @media (min-width:820px){ .topbar .qr-btn{width:auto;padding:0 12px} .qr-label{display:inline;font-size:.88rem} }
-@media (max-width:640px){ .topbar #installBtn{display:none} } /* offered inside the share dialog instead */
-@media (max-width:600px){
+@media (max-width:720px){ .topbar #installBtn{display:none} } /* offered inside the share dialog instead */
+@media (max-width:620px){
   .topbar .wrap{gap:6px}
   .brand span,.brand small{display:none}
   #curToggle button{min-width:34px;padding:0 7px;font-size:.92rem}
   .topbar .icon-btn{width:40px}
 }
-@media (max-width:360px){
+@media (max-width:400px){
   #curToggle button{min-width:30px;padding:0 5px;font-size:.85rem}
   .topbar .icon-btn{width:38px}
 }
+@media (max-width:360px){ .brand svg{display:none} } /* five currency presets + QR + mute must fit 320px */
 dialog.qr-dialog{border:1px solid var(--line);border-radius:20px;background:var(--panel);color:var(--text);padding:0;
   width:min(360px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;box-shadow:var(--shadow)}
 dialog.qr-dialog::backdrop{background:rgba(2,6,23,.66)}
@@ -208,6 +209,7 @@ input[type=range]{width:100%;accent-color:var(--emerald);height:32px;cursor:grab
 .fstep.active .in{animation:suck .55s ease both}
 .fstep.active .out{animation:pop .5s .45s ease both}
 .insight{padding:12px;border-radius:12px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.4);font-size:.92rem}
+.insight.warn{background:rgba(251,113,133,.1);border-color:rgba(251,113,133,.55)}
 
 /* drill */
 .hud{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:10px 0}
@@ -254,6 +256,60 @@ footer a{color:var(--emerald-ink)}
   background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:800;box-shadow:var(--shadow);transition:.25s ease;z-index:50;max-width:calc(100% - 32px);text-align:center}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
+/* ---------- printable cheat sheet (1 page, fits A4 and US Letter) ---------- */
+#cheatSheet{display:none;font-family:var(--font);color:#0f172a;background:#fff;line-height:1.35;
+  --text:#0f172a;--bg:#fff;--panel:#fff;--panel2:#eef2f8;--line:#cbd5e1;--muted:#475569;--emerald-ink:#047857}
+@media print{
+  @page{margin:11mm}
+  html,body{background:#fff!important;color:#0f172a!important;padding:0!important;margin:0!important}
+  body>*:not(#cheatSheet){display:none!important}
+  #cheatSheet{display:block}
+  #cheatSheet *{-webkit-print-color-adjust:exact;print-color-adjust:exact;animation:none!important;transition:none!important}
+}
+.cs-head{display:flex;justify-content:space-between;align-items:flex-end;gap:6mm;border-bottom:1.2mm solid #10b981;padding-bottom:2.5mm;margin-bottom:4mm}
+.cs-title{font-size:21pt;font-weight:900;letter-spacing:.05em;margin:0}
+.cs-title b{color:#059669}
+.cs-title small{font-size:12pt;letter-spacing:.02em;font-weight:800;color:#0f172a;margin-left:2mm}
+.cs-sub{font-size:10.5pt;color:#475569;text-align:right}
+.cs-panel{border:.45mm solid #cbd5e1;border-radius:4mm;padding:3.5mm 5mm;margin-bottom:3.5mm;break-inside:avoid;page-break-inside:avoid}
+.cs-panel h2{font-size:14pt;margin:0 0 1.5mm;display:flex;align-items:center;gap:2.5mm}
+.cs-n{display:inline-flex;align-items:center;justify-content:center;width:8mm;height:8mm;border-radius:50%;background:#10b981;color:#022c1a;font-size:11pt;flex:none}
+.cs-line{display:block;width:100%;height:auto;max-height:58mm}
+.cs-line text{font-family:var(--font)}
+.cs-k{font-size:11px;font-weight:800;letter-spacing:.14em;fill:#64748b}
+.cs-ghost{stroke:#94a3b8;stroke-width:2;stroke-dasharray:4 4}
+.cs-beam-ghost{fill:none;stroke:#10b981;stroke-width:2;stroke-dasharray:5 4}
+.cs-ghost-t{font-size:11px;font-weight:700;fill:#64748b}
+.cs-arrow{fill:none;stroke-width:2.5}
+.cs-arrow.b{stroke:#e11d48} .cs-arrow.t{stroke:#2563eb}
+.cs-shift{font-size:14px;font-weight:900}
+.cs-shift.b,.cs-v.b{fill:#e11d48} .cs-shift.t,.cs-v.t{fill:#2563eb}
+.cs-beam-t{fill:#fff;font-size:14px;font-weight:900;letter-spacing:.04em}
+.cs-v{font-size:16px;font-weight:900}
+.cs-v0{font-size:13px;font-weight:700;fill:#94a3b8}
+.cs-eq{font-family:var(--mono);font-size:13pt;font-weight:800;text-align:center;margin:1.5mm 0 2.5mm}
+.cs-eq s{color:#94a3b8;text-decoration-thickness:.5mm}
+.cs-eq .arr{color:#e11d48;font-family:var(--font)}
+.cs-eq b{color:#047857}
+.cs-rule{font-size:10.5pt;background:#ecfdf5;border-left:1.2mm solid #10b981;padding:2mm 3mm;border-radius:1.5mm;margin:0}
+.cs-rule.amber{background:#fffbeb;border-left-color:#f59e0b}
+.cs-pos{display:grid;grid-template-columns:44mm 1fr;gap:5mm;align-items:center;margin-bottom:2.5mm}
+.cs-lcd{background:#04140c;color:#4ade80;font-family:var(--mono);border-radius:3mm;padding:3mm;font-size:9.5pt;border:.6mm solid #14532d}
+.cs-lcd b{display:block;font-size:17pt;color:#4ade80}
+.cs-lcd i{display:block;font-style:normal;color:#fde047;margin-top:1.5mm}
+.cs-steps{list-style:none;margin:0;padding:0;display:grid;gap:2mm}
+.cs-steps li{display:flex;flex-wrap:wrap;align-items:center;gap:1.8mm;font-weight:900;font-size:11pt}
+.cs-steps li em{font-style:normal;font-weight:600;font-size:9.5pt;color:#475569;margin-left:1mm}
+.cs-steps .chip{padding:1mm 3mm;font-size:11pt}
+.cs-steps .money.note{height:9mm;min-width:20mm;font-size:11pt}
+.cs-foot{display:grid;grid-template-columns:1fr 48mm;gap:6mm;align-items:center}
+.cs-foot ol{margin:1mm 0 2mm;padding-left:6mm;font-size:11pt;font-weight:700}
+.cs-foot ol li{margin:1mm 0}
+.cs-meta{font-size:8.5pt;color:#64748b;margin:0}
+.cs-qr{text-align:center;font-size:9pt;font-weight:700}
+.cs-qr svg{display:block;width:40mm;height:40mm;margin:0 auto 1.5mm}
+.cs-qr code{display:block;font-family:var(--mono);font-size:9pt;color:#047857;font-weight:800}
+
 @keyframes pop{0%{opacity:0;transform:scale(.3)}70%{opacity:1;transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
 @keyframes suck{to{opacity:.4;transform:scale(.82)}}
 @keyframes blink{50%{opacity:.45}}
@@ -274,6 +330,7 @@ footer a{color:var(--emerald-ink)}
     <div class="seg" role="radiogroup" aria-label="Currency" id="curToggle">
       <button type="button" role="radio" data-code="AUD" aria-checked="true" aria-label="Australian dollar" title="Australian dollar (AUD)">A$</button>
       <button type="button" role="radio" data-code="USD" aria-checked="false" aria-label="US dollar" title="US dollar (USD)">US$</button>
+      <button type="button" role="radio" data-code="CAD" aria-checked="false" aria-label="Canadian dollar" title="Canadian dollar (CAD)">C$</button>
       <button type="button" role="radio" data-code="GBP" aria-checked="false" aria-label="Pound sterling" title="Pound sterling (GBP)">£</button>
       <button type="button" role="radio" data-code="EUR" aria-checked="false" aria-label="Euro" title="Euro (EUR)">€</button>
     </div>
@@ -322,6 +379,7 @@ footer a{color:var(--emerald-ink)}
     <div class="row">
       <button type="button" class="btn small" id="shareBtn">🔗 Copy share link</button>
       <button type="button" class="btn small" id="randomBtn">🎲 Random sale</button>
+      <button type="button" class="btn small" id="printBtn">🖨️ Print Cheat Sheet</button>
       <button type="button" class="btn small ghost" id="resetScenarioBtn">↺ Default</button>
       <span class="msg" id="scenarioMsg" role="status"></span>
     </div>
@@ -506,11 +564,14 @@ footer a{color:var(--emerald-ink)}
       <button type="button" class="btn small" id="qrCopyBtn">🔗 Copy link</button>
       <button type="button" class="btn small" id="qrShareBtn" hidden>📤 Share…</button>
       <button type="button" class="btn small" id="qrInstallBtn" hidden>⤓ Install app</button>
+      <button type="button" class="btn small" id="qrPrintBtn">🖨️ Print Cheat Sheet</button>
     </div>
     <div class="row center" style="margin-top:10px"><button type="button" class="btn primary" id="qrCloseBtn">Done</button></div>
   </div>
 </dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<!-- Print-only 1-page poster, filled by buildCheatSheet(). Screen: hidden. Print: the only thing on the page. -->
+<section id="cheatSheet" aria-label="Printable cheat sheet"></section>
 
 <script>
 (() => {
@@ -781,6 +842,7 @@ function renderAll() {
   renderFusion();
   renderPad();
   renderDrillIdle();
+  buildCheatSheet();
 }
 function setCurrency(code) {
   if (!CURRENCIES[code] || code === state.cur) return;
@@ -970,15 +1032,37 @@ function renderFusion() {
     return `<div class="fstep" data-i="${i}"><span class="fnum">${i + 1}</span><div class="fexpr">${ins}${ins ? '<span class="arrow">→</span>' : ''}${outs}</div><div class="fcap">${s.cap}</div></div>`;
   }).join('');
   $('fuseStepBtn').disabled = false;
+  const ins = $('fusionInsight');
+  ins.classList.remove('warn');
   if (pos < 0) {
-    $('fusionInsight').textContent = `The ${fmt(state.note)} note doesn't cover the ${fmt(state.bill)} bill on its own, so the drawer never opened. Change on the full ${fmt(state.note + e)} tender is ${fmt(change)}.`;
+    ins.textContent = `The ${fmtShort(state.note)} ${cur().noteWord} doesn't cover the ${fmt(state.bill)} bill on its own, so the drawer never opened. Change on the full ${fmt(state.note + e)} tender is ${fmt(change)}.`;
   } else if (e === 0) {
-    $('fusionInsight').textContent = `No late coins, so there's nothing to fuse — give ${partsText(gc)}. Add extra coins above (for example ${fmtMinor(state.bill % 100 || 50)}) to see fusion.`;
+    ins.textContent = `No late coins, so there's nothing to fuse — give ${partsText(gc)}. Add extra coins above (for example ${fmtMinor(state.bill % 100 || 50)}) to see fusion.`;
   } else {
-    const before = gp.count;
-    $('fusionInsight').innerHTML = `Without fusion you'd count out <b>${pieces(before)}</b> (${partsText(gp)}) and drop ${pieces(ge.count)} of coins in the drawer. `
-      + `Fused, you hand over <b>${pieces(gc.count)}</b>: ${partsText(gc)}. ${gc.count < before ? `That's ${pieces(before - gc.count)} fewer.` : ''}`;
+    ins.innerHTML = fusionVerdict(pos, e, gp, ge, gc);
+    ins.classList.toggle('warn', gc.count >= gp.count);
   }
+}
+/** Honest comparison: late coins only help when they cancel the bill's odd cents. */
+function fusionVerdict(pos, e, gp, ge, gc) {
+  const saved = gp.count - gc.count, odd = state.bill % 100, minorWord = cur().minor === 'p' ? 'pence' : 'cents';
+  const before = gp.count
+    ? `Without the late coins you'd count out <b>${pieces(gp.count)}</b> (${partsText(gp)}).`
+    : 'Without the late coins the sale is exact — no change due.';
+  const after = ` Taking the ${fmt(e)} (${pieces(ge.count)}) you'd hand over <b>${pieces(gc.count)}</b>: ${partsText(gc)}.`;
+  if (saved > 0) return `${before}${after} That's <b>${pieces(saved)} fewer</b> ✅`;
+  const extra = -saved;
+  const lead = saved === 0 ? ' Fusing saves nothing here.' : ` ⚠️ Fusing makes this <b>clunkier — ${extra} more ${extra === 1 ? 'piece' : 'pieces'}</b>.`;
+  let fix;
+  if (odd === 0) {
+    fix = ` The bill is already a whole ${cur().sym} amount, so late coins can't cancel any odd ${minorWord}: hand the ${fmt(e)} back and give ${partsText(gp)}.`;
+  } else {
+    const altChange = state.note + odd - state.bill, alt = greedy(altChange, denoms());
+    fix = ` The ${fmt(e)} doesn't match the bill's odd ${fmtMinor(odd)}. Rescue rule: only accept late coins that cancel the bill's odd ${minorWord}`
+      + (alt.count < gp.count ? ` — ${fmtMinor(odd)} would make the change ${fmt(altChange)} in ${pieces(alt.count)}` : '')
+      + `. Otherwise hand the ${fmt(e)} back.`;
+  }
+  return before + after + lead + fix;
 }
 function fusionStep() {
   if (fusion.idx >= fusion.steps.length) return false;
@@ -1163,6 +1247,84 @@ function endDrill(aborted) {
 }
 
 /* =====================================================================
+ * 8b. PRINTABLE CHEAT SHEET — canonical $11.70 / $20 + $1.70 example,
+ *     drawn in the selected currency straight from the integer-cents engine.
+ * ===================================================================== */
+function buildCheatSheet() {
+  const C = cur(), B = 1170, N = 2000, E = 170, T = N + E, K = friendlyShift(B), POS = N - B, CH = T - B;
+  const gp = greedy(POS, denoms()), gc = greedy(CH, denoms());
+  const pc = POS % 100, ec = E % 100, pd = POS - pc, ed = E - ec, carry = Math.floor((pc + ec) / 100) * 100;
+  const minorWord = C.minor === 'p' ? 'pence' : 'cents';
+  const X = (v) => 20 + (v - 900) * 560 / 1400;                       // SVG x for an amount in cents
+  const xb0 = X(B), xt0 = X(T), xb = X(B - K), xt = X(T - K), f = (n) => n.toFixed(1);
+  const line = `
+<svg class="cs-line" viewBox="0 0 600 166" role="img" aria-label="Number line: ${fmt(B)} and ${fmt(T)} both slide left ${fmt(K)} to ${fmt(B - K)} and ${fmt(T - K)}; the ${fmt(CH)} gap does not change">
+  <defs>
+    <marker id="csArB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#e11d48"/></marker>
+    <marker id="csArT" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#2563eb"/></marker>
+  </defs>
+  <text class="cs-k" x="${f(xb0)}" y="14" text-anchor="middle">BILL</text>
+  <text class="cs-k" x="${f(xt0)}" y="14" text-anchor="middle">TENDER</text>
+  <line class="cs-ghost" x1="${f(xb0)}" y1="22" x2="${f(xb0)}" y2="130"/><line class="cs-ghost" x1="${f(xt0)}" y1="22" x2="${f(xt0)}" y2="130"/>
+  <rect class="cs-beam-ghost" x="${f(xb0)}" y="28" width="${f(xt0 - xb0)}" height="16" rx="4"/>
+  <text class="cs-ghost-t" x="${f((xb0 + xt0) / 2)}" y="40" text-anchor="middle">gap ${fmt(CH)}</text>
+  <path class="cs-arrow b" d="M${f(xb0 - 3)} 50 L${f(xb + 6)} 76" marker-end="url(#csArB)"/>
+  <path class="cs-arrow t" d="M${f(xt0 - 3)} 50 L${f(xt + 6)} 76" marker-end="url(#csArT)"/>
+  <text class="cs-shift b" x="${f(xb0 + 6)}" y="68">−${fmt(K)}</text>
+  <text class="cs-shift t" x="${f(xt0 + 6)}" y="68">−${fmt(K)}</text>
+  <rect x="${f(xb)}" y="82" width="${f(xt - xb)}" height="28" rx="6" fill="#10b981"/>
+  <text class="cs-beam-t" x="${f((xb + xt) / 2)}" y="101" text-anchor="middle">CHANGE GAP ${fmt(CH)}</text>
+  <line x1="${f(xb)}" y1="76" x2="${f(xb)}" y2="130" stroke="#e11d48" stroke-width="3"/>
+  <line x1="${f(xt)}" y1="76" x2="${f(xt)}" y2="130" stroke="#2563eb" stroke-width="3"/>
+  <line x1="10" y1="130" x2="590" y2="130" stroke="#334155" stroke-width="2"/>
+  <circle cx="${f(xb)}" cy="130" r="6" fill="#e11d48"/><circle cx="${f(xt)}" cy="130" r="6" fill="#2563eb"/>
+  <text class="cs-v b" x="${f(xb)}" y="152" text-anchor="middle">${fmt(B - K)}</text>
+  <text class="cs-v t" x="${f(xt)}" y="152" text-anchor="middle">${fmt(T - K)}</text>
+  <text class="cs-v0" x="${f(xb0)}" y="152" text-anchor="middle">${fmt(B)}</text>
+  <text class="cs-v0" x="${f(xt0)}" y="152" text-anchor="middle">${fmt(T)}</text>
+</svg>`;
+  const chip = (cls, v) => `<span class="chip ${cls}">${cls === 'cents' ? fmtMinor(v) : fmt(v)}</span>`;
+  $('cheatSheet').innerHTML = `
+<header class="cs-head">
+  <h1 class="cs-title">SNAP<b>CHANGE</b> ⚡<small>Cashier Cheat Sheet</small></h1>
+  <div class="cs-sub">Give perfect change in 3 seconds<br>${C.name} (${C.code}) edition</div>
+</header>
+<section class="cs-panel">
+  <h2><span class="cs-n">1</span>The ${fmt(K)} Constant-Difference Shortcut</h2>
+  ${line}
+  <div class="cs-eq"><s>${fmt(T)} − ${fmt(B)}</s> <span class="arr">→ slide both −${fmt(K)} →</span> <b>${fmt(T - K)} − ${fmt(B - K)} = ${fmt(CH)}</b></div>
+  <p class="cs-rule"><b>Rule:</b> take the same amount off both numbers and the gap never changes. Slide the bill down to a friendly ten, then read the change straight off.</p>
+</section>
+<section class="cs-panel">
+  <h2><span class="cs-n">2</span>POS Late-Coin Rescue</h2>
+  <div class="cs-pos">
+    <div class="cs-lcd">CHANGE DUE<b>${fmt(POS)}</b>▣ DRAWER OPEN<i>+ customer finds ${fmt(E)}</i></div>
+    <ol class="cs-steps">
+      <li>${chip('cents', pc)} + ${chip('cents', ec)} → ${chip('dollars', carry)}<em>add the ${minorWord}</em></li>
+      <li>${chip('dollars', pd)} + ${chip('dollars', ed)} + ${chip('dollars', carry)} → ${chip('result', CH)}<em>add the dollars</em></li>
+      <li>${partsHTML(gc)}<em>hand over ${partsText(gc)}, not ${pieces(gp.count)}</em></li>
+    </ol>
+  </div>
+  <p class="cs-rule amber"><b>Rescue rule:</b> drawer already open? Don't re-key the sale. If the late coins cancel the bill's odd ${minorWord}, add ${minorWord} first, then dollars, and hand over one clean amount. If they don't match, hand them back.</p>
+</section>
+<section class="cs-panel cs-foot">
+  <div>
+    <h2><span class="cs-n">3</span>The 3-second routine</h2>
+    <ol>
+      <li>Slide the bill to a friendly ten.</li>
+      <li>Read the gap: that's the change.</li>
+      <li>Give it in the fewest notes &amp; coins.</li>
+    </ol>
+    <p class="cs-meta">Every amount above is exact integer-cents maths (${fmt(T)} = ${T} cents). Practise free on any phone — works offline.</p>
+  </div>
+  <div class="cs-qr" id="csQr">Scan to practise<code>ob1d.github.io/snapchange</code></div>
+</section>`;
+  const qrCopy = $('qrSvg').cloneNode(true);
+  qrCopy.removeAttribute('id');
+  $('csQr').prepend(qrCopy);
+}
+
+/* =====================================================================
  * 9. TABS + WIRING
  * ===================================================================== */
 function setView(v, focus) {
@@ -1271,6 +1433,16 @@ function wire() {
   qr.addEventListener('close', () => $('qrBtn').focus({ preventScroll: true }));
   $('qrShareBtn').hidden = typeof navigator.share !== 'function';
   $('qrCopyBtn').addEventListener('click', async () => { const ok = await copyText(APP_URL); toast(ok ? '🔗 Link copied' : APP_URL); });
+  // print cheat sheet (Ctrl/Cmd+P prints it too, via beforeprint + the print stylesheet)
+  const printCheatSheet = () => {
+    buildCheatSheet();
+    if (qr.open) closeQr();
+    Sfx.tap();
+    setTimeout(() => window.print(), 60); // let the dialog close before the browser snapshots the page
+  };
+  $('printBtn').addEventListener('click', printCheatSheet);
+  $('qrPrintBtn').addEventListener('click', printCheatSheet);
+  window.addEventListener('beforeprint', buildCheatSheet);
   $('qrShareBtn').addEventListener('click', () => {
     navigator.share({ title: 'SnapChange', text: 'Learn to give cash change in 3 seconds ⚡', url: APP_URL }).catch(() => { /* cancelled */ });
   });

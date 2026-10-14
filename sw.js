@@ -2,7 +2,7 @@
  * Bump CACHE_VERSION whenever the shell changes so clients pick up the new version. */
 'use strict';
 
-const CACHE_VERSION = 'snapchange-v2.2.0';
+const CACHE_VERSION = 'snapchange-v2.3.0';
 const SHELL = './index.html';
 const PRECACHE = ['./', SHELL, './manifest.json', './icon.svg', './icon-192.png', './icon-512.png'];
 
